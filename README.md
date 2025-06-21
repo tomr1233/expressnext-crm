@@ -1,133 +1,206 @@
-# ExpressNext CRM
+# AI Agency CRM
 
-[![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-15.3.3-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.0.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 
-A full-stack, modern Customer Relationship Management (CRM) application built with Next.js for the frontend and Express.js for the backend API. It uses Prisma as the ORM to interact with a PostgreSQL database and is written entirely in TypeScript.
-
-> **Note:** This project is currently in development.
-
-<!-- **[Live Demo](your-live-demo-url)** -->
-
----
-
-
-> *Suggestion: Replace the image above with a real screenshot of your application!*
+A modern, comprehensive Customer Relationship Management (CRM) system specifically designed for AI automation agencies. Built with Next.js 15, React 19, TypeScript, and Supabase, this application provides a complete sales pipeline management solution from lead prospecting to client onboarding.
 
 ## ✨ Features
 
-Based on the current schema, the application supports:
+### 🎯 Lead Management & Prospecting
+- **Smart Lead Filtering**: Filter leads by bio keywords, follower count, website presence
+- **Bio Match Scoring**: AI-powered bio matching with percentage scores
+- **Multi-Source Tracking**: Track leads from LinkedIn, Twitter, cold email campaigns
+- **Lead Qualification**: Mark leads as qualified/unqualified with status tracking
+- **Tag Management**: Organize leads with custom tags (AI, SaaS, Marketing, etc.)
 
--   **🔐 Secure User Authentication**: JWT-based authentication for registering and logging in users.
--   **👤 Contact Management**: Full CRUD (Create, Read, Update, Delete) functionality for customer contacts.
--   **📈 Interaction Logging**: Ability to log interactions (e.g., calls, emails, meetings) with specific contacts.
--   **🤝 Relational Data**: Contacts and Interactions are linked to the users who manage them.
--   **🚀 Modern UI**: A clean and responsive user interface built with Tailwind CSS and shadcn/ui.
+### 📊 Sales Pipeline Management
+- **Kanban Board**: Visual pipeline with drag-and-drop deal management
+- **Deal Stages**: Contacted → Demo Scheduled → Negotiating → Proposal Sent
+- **Deal Tracking**: Monitor deal values, owners, and due dates
+- **Activity Logging**: Track all interactions and deal progression
+
+### 💰 Closed Deals Analytics
+- **Deal Performance**: Track won deals with comprehensive metrics
+- **Revenue Analytics**: Monitor deal values, close dates, and performance trends
+- **Client Management**: Detailed client information and deal history
+- **Export Functionality**: CSV export for reporting and analysis
+
+### 🚀 Client Onboarding
+- **Post-Sale Handoff**: Seamless transition from sales to operations
+- **Progress Tracking**: Visual progress bars and completion percentages
+- **Step Management**: Customizable onboarding checklists
+- **Team Assignment**: Assign onboarding specialists to clients
+- **Status Monitoring**: Track onboarding status (in-progress, completed, delayed)
+
+### 📚 Resource Management
+- **Knowledge Base**: Internal resource library for team collaboration
+- **File Management**: Upload and organize documents, videos, images
+- **Categorization**: Organize by department (Sales, Marketing, Operations)
+- **Tag System**: Advanced tagging for easy resource discovery
+- **Search Functionality**: Quick resource search and filtering
+
+### 📈 Dashboard & Analytics
+- **KPI Overview**: Total leads, active deals, monthly revenue, closed deals
+- **Recent Activity**: Real-time activity feed with team member actions
+- **Pipeline Overview**: Visual representation of deal stages and values
+- **Performance Metrics**: Track team and individual performance
 
 ## 🛠️ Tech Stack
 
-This project is a monorepo containing a separate client and API.
-
-| Category      | Technology                                                                                                    |
-|---------------|---------------------------------------------------------------------------------------------------------------|
-| **Frontend**  | [**Next.js 14**](https://nextjs.org/) (with App Router), [**React**](https://react.dev/), [**Tailwind CSS**](https://tailwindcss.com/), [**shadcn/ui**](https://ui.shadcn.com/) |
-| **Backend**   | [**Express.js**](https://expressjs.com/), [**JWT**](https://jwt.io/) (for authentication), [**CORS**](https://expressjs.com/en/resources/middleware/cors.html)                |
-| **Database**  | [**PostgreSQL**](https://www.postgresql.org/), [**Prisma ORM**](https://www.prisma.io/)                          |
-| **Language**  | [**TypeScript**](https://www.typescriptlang.org/)                                                             |
-| **Tooling**   | [**pnpm**](https://pnpm.io/) (as package manager), [**Concurrently**](https://github.com/open-cli-tools/concurrently) (to run both servers) |
+| Category | Technology |
+|----------|------------|
+| **Frontend** | Next.js 15 (App Router), React 19, TypeScript |
+| **Styling** | Tailwind CSS 4, shadcn/ui components |
+| **Database** | Supabase (PostgreSQL) |
+| **Authentication** | Supabase Auth |
+| **UI Components** | Radix UI primitives, Lucide React icons |
+| **Date Handling** | date-fns |
+| **Drag & Drop** | react-dnd |
+| **Development** | ESLint, TypeScript strict mode |
 
 ## 🚀 Getting Started
 
-Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
-
 ### Prerequisites
 
-You need to have the following software installed on your system:
+- Node.js 18+ 
+- npm, yarn, or pnpm
+- Supabase account
 
--   [Node.js](https://nodejs.org/) (v18 or later recommended)
--   [pnpm](https://pnpm.io/installation) (used as the package manager for this project)
--   [PostgreSQL](https://www.postgresql.org/download/) or Docker to run a PostgreSQL instance.
+### Installation
 
-### Installation & Setup
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/ai-agency-crm.git
+   cd ai-agency-crm
+   ```
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/tomr1233/expressnext-crm.git
-    cd expressnext-crm
-    ```
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   ```
 
-2.  **Install dependencies:**
-    This project uses `pnpm` workspaces. The root `package.json` has a script to install all dependencies for both the `client` and `api` workspaces.
-    ```bash
-    pnpm install:all
-    ```
+3. **Set up Supabase**
+   - Create a new Supabase project at [supabase.com](https://supabase.com)
+   - Copy your project URL and anon key
+   - Create a `.env.local` file in the root directory:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
-3.  **Set up environment variables:**
-    Create a `.env` file in the `api` directory by copying the example file.
-    ```bash
-    cp api/.env.example api/.env
-    ```
-    Now, open `api/.env` and update the variables:
-    -   `DATABASE_URL`: Your PostgreSQL connection string.
-        -   Format: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public`
-        -   Example: `postgresql://postgres:mysecretpassword@localhost:5432/crm_dev`
-    -   `JWT_SECRET`: A long, random, and secret string for signing JWTs.
+4. **Set up the database**
+   - Use the Supabase dashboard to create the necessary tables
+   - Or run the provided SQL migrations (if available)
 
-4.  **Set up the database:**
-    Run the Prisma migrate command to sync the database schema and create the necessary tables.
-    ```bash
-    pnpm prisma:migrate
-    ```
-    This command executes `prisma migrate dev --name init` as defined in the root `package.json`.
+5. **Run the development server**
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
+   ```
 
-5.  **Run the development servers:**
-    The `dev` script at the root level uses `concurrently` to start both the Next.js frontend and the Express.js backend at the same time.
-    ```bash
-    pnpm dev
-    ```
-
-    -   The **API** will be running on `http://localhost:3001` (or your configured port).
-    -   The **Client** will be running on `http://localhost:3000`.
-
-You can now open your browser and navigate to `http://localhost:3000` to see the application in action!
+6. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
 
 ## 📂 Project Structure
 
-The repository is structured as a monorepo with two main packages:
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── deals/             # Closed deals page
+│   ├── leads/             # Lead management page
+│   ├── onboarding/        # Client onboarding page
+│   ├── pipeline/          # Active pipeline page
+│   ├── resources/         # Resource library page
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Dashboard home page
+├── components/            # Reusable React components
+│   ├── dashboard/         # Dashboard-specific components
+│   ├── deals/             # Deal management components
+│   ├── layout/            # Layout components (sidebar, header)
+│   ├── leads/             # Lead management components
+│   ├── onboarding/        # Onboarding components
+│   ├── pipeline/          # Pipeline components
+│   ├── resources/         # Resource management components
+│   └── ui/                # shadcn/ui components
+├── lib/                   # Utility functions and configurations
+│   ├── supabase.ts        # Supabase client and types
+│   └── utils.ts           # Utility functions
+└── types/                 # TypeScript type definitions
+```
 
-```
-.
-├── api/                # Backend (Express.js API)
-│   ├── prisma/         # Prisma schema and migrations
-│   ├── src/            # API source code
-│   ├── .env.example    # Environment variable template
-│   └── package.json
-│
-├── client/             # Frontend (Next.js App)
-│   ├── src/            # Client source code (components, pages, etc.)
-│   └── package.json
-│
-├── .gitignore
-├── package.json        # Root package file with scripts for managing the monorepo
-├── pnpm-lock.yaml
-└── README.md
-```
+## 🎨 Design System
+
+The application uses a consistent design system built on:
+
+- **Color Palette**: Neutral grays with blue accents for primary actions
+- **Typography**: Geist Sans and Geist Mono fonts
+- **Spacing**: 8px grid system for consistent spacing
+- **Components**: shadcn/ui for consistent, accessible components
+- **Icons**: Lucide React for a cohesive icon set
+
+## 🔐 Authentication & Security
+
+- **Supabase Auth**: Secure authentication with email/password
+- **Row Level Security**: Database-level security policies
+- **Type Safety**: Full TypeScript coverage for type safety
+- **Environment Variables**: Secure configuration management
+
+## 📱 Responsive Design
+
+The application is fully responsive and optimized for:
+- **Desktop**: Full-featured experience with sidebar navigation
+- **Tablet**: Collapsible sidebar with touch-friendly interactions
+- **Mobile**: Mobile-optimized layouts and navigation
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you have suggestions for improving the app, please feel free to open an issue or submit a pull request.
+We welcome contributions! Please follow these steps:
 
-1.  **Fork** the repository.
-2.  Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4.  Push to the branch (`git push origin feature/AmazingFeature`).
-5.  Open a **Pull Request**.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow the existing code style and conventions
+- Write TypeScript with strict type checking
+- Use the established component patterns
+- Test your changes thoroughly
+- Update documentation as needed
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for details.
-> *Suggestion: Create a `LICENSE.md` file in your root directory with the MIT License text.*
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/) for the amazing React framework
+- [Supabase](https://supabase.com/) for the backend infrastructure
+- [shadcn/ui](https://ui.shadcn.com/) for the beautiful component library
+- [Tailwind CSS](https://tailwindcss.com/) for the utility-first CSS framework
+- [Lucide](https://lucide.dev/) for the icon set
+
+## 📞 Support
+
+If you have any questions or need help with setup, please:
+- Open an issue on GitHub
+- Check the documentation
+- Contact the development team
+
+---
+
+**Built with ❤️ for AI automation agencies**
