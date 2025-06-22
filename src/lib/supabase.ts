@@ -67,9 +67,12 @@ export interface Resource {
   category: string
   department: string
   description: string
+  s3_key: string
   file_url: string
   size: string
   tags: string[]
   upload_date: string
   uploaded_by: string
+  created_at?: string
+  download_url?: string // Added for frontend use
 }

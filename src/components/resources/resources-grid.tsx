@@ -1,76 +1,28 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Eye, Video, Image, File } from "lucide-react";
+import { FileText, Download, Eye, Video, Image, File, Loader2, Trash2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
-const resources = [
-  {
-    id: 1,
-    name: "Sales Script Templates",
-    type: "document",
-    category: "Sales",
-    department: "Sales",
-    description: "Collection of proven sales scripts for different scenarios",
-    uploadDate: "2024-01-10",
-    size: "2.3 MB",
-    tags: ["Scripts", "Templates", "Cold Calling"],
-  },
-  {
-    id: 2,
-    name: "AI Automation Demo Video",
-    type: "video",
-    category: "Demo",
-    department: "Marketing",
-    description: "Product demonstration video for client presentations",
-    uploadDate: "2024-01-08",
-    size: "45.2 MB",
-    tags: ["Demo", "Video", "AI"],
-  },
-  {
-    id: 3,
-    name: "Onboarding Checklist",
-    type: "document",
-    category: "Process",
-    department: "Operations",
-    description: "Step-by-step client onboarding process documentation",
-    uploadDate: "2024-01-05",
-    size: "1.1 MB",
-    tags: ["Onboarding", "Process", "Checklist"],
-  },
-  {
-    id: 4,
-    name: "Brand Guidelines",
-    type: "image",
-    category: "Brand",
-    department: "Marketing",
-    description: "Company brand guidelines and visual identity standards",
-    uploadDate: "2024-01-03",
-    size: "8.7 MB",
-    tags: ["Brand", "Guidelines", "Design"],
-  },
-  {
-    id: 5,
-    name: "Proposal Template",
-    type: "document",
-    category: "Templates",
-    department: "Sales",
-    description: "Standard proposal template for AI automation projects",
-    uploadDate: "2024-01-01",
-    size: "3.4 MB",
-    tags: ["Proposal", "Template", "Sales"],
-  },
-  {
-    id: 6,
-    name: "Technical Specifications",
-    type: "document",
-    category: "Technical",
-    department: "Engineering",
-    description: "Technical requirements and specifications document",
-    uploadDate: "2023-12-28",
-    size: "5.2 MB",
-    tags: ["Technical", "Specs", "Engineering"],
-  },
-];
+interface Resource {
+  id: string;
+  name: string;
+  type: 'document' | 'video' | 'image' | 'other';
+  category: string;
+  department: string;
+  description: string;
+  s3_key: string;
+  file_url: string;
+  size: string;
+  tags: string[];
+  upload_date: string;
+  uploaded_by: string;
+  created_at?: string;
+  download_url?: string;
+}
 
 const getFileIcon = (type: string) => {
   switch (type) {
@@ -98,6 +50,91 @@ const getCategoryColor = (category: string) => {
 };
 
 export function ResourcesGrid() {
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const fetchResources = async () => {
+    try {
+      const response = await fetch("/api/resources");
+      if (!response.ok) throw new Error("Failed to fetch resources");
+      const data = await response.json();
+      setResources(data);
+    } catch (error) {
+      console.error("Error fetching resources:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchResources();
+  }, []);
+
+  const handleView = (resource: Resource) => {
+    if (resource.file_url) {
+      window.open(resource.file_url, "_blank");
+    }
+  };
+
+  const handleDownload = async (resource: Resource) => {
+    if (resource.download_url) {
+      try {
+        const response = await fetch(resource.download_url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = resource.name;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error("Download error:", error);
+        alert("Failed to download file");
+      }
+    }
+  };
+
+  const handleDelete = async (resourceId: string) => {
+    if (!confirm("Are you sure you want to delete this resource?")) return;
+
+    setDeletingId(resourceId);
+    try {
+      const response = await fetch(`/api/resources?id=${resourceId}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) throw new Error("Failed to delete resource");
+      
+      // Remove from local state
+      setResources(resources.filter(r => r.id !== resourceId));
+    } catch (error) {
+      console.error("Error deleting resource:", error);
+      alert("Failed to delete resource");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (resources.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">No resources uploaded yet.</p>
+        <p className="text-sm text-gray-400 mt-2">Click "Upload Resource" to add your first resource.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {resources.map((resource) => {
@@ -111,8 +148,8 @@ export function ResourcesGrid() {
                   <div className="p-2 bg-gray-100 rounded-lg">
                     <FileIcon className="h-5 w-5 text-gray-600" />
                   </div>
-                  <div>
-                    <CardTitle className="text-sm font-medium">{resource.name}</CardTitle>
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-sm font-medium truncate">{resource.name}</CardTitle>
                     <p className="text-xs text-gray-500 mt-1">{resource.size}</p>
                   </div>
                 </div>
@@ -123,7 +160,7 @@ export function ResourcesGrid() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <p className="text-sm text-gray-600">{resource.description}</p>
+                <p className="text-sm text-gray-600 line-clamp-2">{resource.description}</p>
                 
                 <div className="flex flex-wrap gap-1">
                   {resource.tags.map((tag) => (
@@ -135,17 +172,41 @@ export function ResourcesGrid() {
                 
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <span>{resource.department}</span>
-                  <span>{new Date(resource.uploadDate).toLocaleDateString()}</span>
+                  <span>
+                    {formatDistanceToNow(new Date(resource.upload_date), { addSuffix: true })}
+                  </span>
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleView(resource)}
+                  >
                     <Eye className="h-4 w-4 mr-1" />
                     View
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleDownload(resource)}
+                  >
                     <Download className="h-4 w-4 mr-1" />
                     Download
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(resource.id)}
+                    disabled={deletingId === resource.id}
+                  >
+                    {deletingId === resource.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
