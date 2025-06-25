@@ -10,13 +10,13 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     return NextResponse.redirect(
-      new URL('/resources?error=google_auth_denied', request.url)
+      new URL('/resources?error=google_auth_denied', request.nextUrl.origin)
     );
   }
 
   if (!code) {
     return NextResponse.redirect(
-      new URL('/resources?error=no_auth_code', request.url)
+      new URL('/resources?error=no_auth_code', request.nextUrl.origin)
     );
   }
 
