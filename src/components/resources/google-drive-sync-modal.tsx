@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { ConnectGoogleDrive } from "./connect-google-drive";
 import { 
   FileIcon, 
   Video, 
@@ -64,7 +65,7 @@ export function GoogleDriveSyncModal({ open, onOpenChange, onSyncComplete }: Goo
     errorCount: number;
     errors?: Array<{ file: string; error: string }>;
   } | null>(null);
-  
+  const [needsAuth, setNeedsAuth] = useState(false);
   // Sync settings
   const [category, setCategory] = useState("");
   const [department, setDepartment] = useState("");
@@ -78,8 +79,10 @@ export function GoogleDriveSyncModal({ open, onOpenChange, onSyncComplete }: Goo
     }
   }, [open, currentFolderId]);
 
-  const loadFiles = async () => {
+// Update the loadFiles function
+const loadFiles = async () => {
     setLoading(true);
+    setNeedsAuth(false);
     try {
       const url = currentFolderId 
         ? `/api/google/sync?folderId=${currentFolderId}`
@@ -88,9 +91,8 @@ export function GoogleDriveSyncModal({ open, onOpenChange, onSyncComplete }: Goo
       const response = await fetch(url);
       if (!response.ok) {
         if (response.status === 401) {
-          // Not authenticated, need to connect Google Drive
-          alert("Please connect your Google Drive account first");
-          onOpenChange(false);
+          // Not authenticated, show connect button
+          setNeedsAuth(true);
           return;
         }
         throw new Error('Failed to load files');
@@ -291,24 +293,31 @@ export function GoogleDriveSyncModal({ open, onOpenChange, onSyncComplete }: Goo
 
             {/* File List */}
             <div className="flex-1 overflow-y-auto min-h-[300px]">
-              {loading ? (
+            {loading ? (
                 <div className="flex items-center justify-center h-full">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                 </div>
-              ) : (
-                <div className="space-y-2 p-4">
-                  {/* Select All */}
-                  {files.length > 0 && (
+                ) : needsAuth ? (
+                <div className="flex flex-col items-center justify-center h-full space-y-4 p-8">
+                    <p className="text-center text-gray-600">
+                    You need to connect your Google Drive account to access your files.
+                    </p>
+                    <ConnectGoogleDrive />
+                </div>
+                ) : (
+                    <div className="space-y-2 p-4">
+                    {/* Select All */}
+                    {files.length > 0 && (
                     <div className="flex items-center space-x-2 pb-2 border-b">
-                      <Checkbox
+                        <Checkbox
                         checked={selectedFiles.size === files.length}
                         onCheckedChange={handleSelectAll}
-                      />
-                      <Label className="text-sm font-medium">
+                        />
+                        <Label className="text-sm font-medium">
                         Select All ({selectedFiles.size} selected)
-                      </Label>
+                        </Label>
                     </div>
-                  )}
+                )}
 
                   {/* Folders */}
                   {currentFolders.map(folder => (

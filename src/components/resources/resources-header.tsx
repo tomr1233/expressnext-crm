@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, Cloud } from "lucide-react";
 import { UploadModal } from "./upload-modal";
+import { GoogleDriveSyncModal } from "./google-drive-sync-modal";
 
 interface ResourcesHeaderProps {
   onResourcesUpdate?: () => void;
@@ -11,6 +12,7 @@ interface ResourcesHeaderProps {
 
 export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
 
   const handleUploadComplete = () => {
     // Trigger a refresh of the resources list
@@ -31,6 +33,10 @@ export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
             <Button variant="outline" size="sm">
               <Filter className="h-4 w-4 mr-2" />
               Filter
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setSyncModalOpen(true)}>
+              <Cloud className="h-4 w-4 mr-2" />
+              Google Drive Sync
             </Button>
             <Button size="sm" onClick={() => setUploadModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -53,6 +59,12 @@ export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
         open={uploadModalOpen}
         onOpenChange={setUploadModalOpen}
         onUploadComplete={handleUploadComplete}
+      />
+      
+      <GoogleDriveSyncModal
+        open={syncModalOpen}
+        onOpenChange={setSyncModalOpen}
+        onSyncComplete={handleUploadComplete}
       />
     </>
   );
