@@ -20,7 +20,8 @@ import {
   ChevronLeft,
   RefreshCw,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Search
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -66,6 +67,7 @@ export function GoogleDriveSyncModal({ open, onOpenChange, onSyncComplete }: Goo
     errors?: Array<{ file: string; error: string }>;
   } | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   // Sync settings
   const [category, setCategory] = useState("");
   const [department, setDepartment] = useState("");
@@ -130,10 +132,10 @@ const loadFiles = async () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedFiles.size === files.length) {
+    if (selectedFiles.size === filteredFiles.length && filteredFiles.length > 0) {
       setSelectedFiles(new Set());
     } else {
-      setSelectedFiles(new Set(files.map(f => f.id)));
+      setSelectedFiles(new Set(filteredFiles.map(f => f.id)));
     }
   };
 
@@ -149,6 +151,7 @@ const loadFiles = async () => {
 
   const navigateToFolder = (folderId: string | null, folderName: string) => {
     setCurrentFolderId(folderId);
+    setSearchQuery(""); // Clear search when navigating
     const currentIndex = folderPath.findIndex(f => f.id === folderId);
     
     if (currentIndex !== -1) {
@@ -228,6 +231,19 @@ const loadFiles = async () => {
     (f.parents && f.parents.includes(currentFolderId || ''))
   );
 
+  // Filter files and folders based on search query
+  const filteredFiles = searchQuery 
+    ? files.filter(file => 
+        file.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : files;
+  
+  const filteredFolders = searchQuery
+    ? currentFolders.filter(folder =>
+        folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : currentFolders;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
@@ -265,30 +281,44 @@ const loadFiles = async () => {
         ) : (
           <>
             {/* Folder Navigation */}
-            <div className="flex items-center space-x-2 pb-3 border-b">
-              {folderPath.map((folder, index) => (
-                <div key={folder.id || 'root'} className="flex items-center">
-                  {index > 0 && <span className="mx-2 text-gray-400">/</span>}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigateToFolder(folder.id, folder.name)}
-                    className="text-sm"
-                  >
-                    {index === 0 && <FolderIcon className="h-4 w-4 mr-1" />}
-                    {folder.name}
-                  </Button>
-                </div>
-              ))}
-              <div className="flex-1" />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={loadFiles}
-                disabled={loading}
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
+            <div className="flex flex-col space-y-3 pb-3 border-b">
+              {/* Breadcrumb Navigation */}
+              <div className="flex items-center space-x-2">
+                {folderPath.map((folder, index) => (
+                  <div key={folder.id || 'root'} className="flex items-center">
+                    {index > 0 && <span className="mx-2 text-gray-400">/</span>}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigateToFolder(folder.id, folder.name)}
+                      className="text-sm"
+                    >
+                      {index === 0 && <FolderIcon className="h-4 w-4 mr-1" />}
+                      {folder.name}
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex-1" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={loadFiles}
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+              
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search files and folders..."
+                  className="pl-10"
+                />
+              </div>
             </div>
 
             {/* File List */}
@@ -307,10 +337,10 @@ const loadFiles = async () => {
                 ) : (
                     <div className="space-y-2 p-4">
                     {/* Select All */}
-                    {files.length > 0 && (
+                    {filteredFiles.length > 0 && (
                     <div className="flex items-center space-x-2 pb-2 border-b">
                         <Checkbox
-                        checked={selectedFiles.size === files.length}
+                        checked={selectedFiles.size === filteredFiles.length && filteredFiles.length > 0}
                         onCheckedChange={handleSelectAll}
                         />
                         <Label className="text-sm font-medium">
@@ -319,8 +349,16 @@ const loadFiles = async () => {
                     </div>
                 )}
 
+                  {/* Search Results Info */}
+                  {searchQuery && (
+                    <div className="text-sm text-gray-500 pb-2">
+                      Found {filteredFiles.length} file{filteredFiles.length !== 1 ? 's' : ''} 
+                      {filteredFolders.length > 0 && ` and ${filteredFolders.length} folder${filteredFolders.length !== 1 ? 's' : ''}`}
+                    </div>
+                  )}
+
                   {/* Folders */}
-                  {currentFolders.map(folder => (
+                  {filteredFolders.map(folder => (
                     <div
                       key={folder.id}
                       className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
@@ -333,7 +371,7 @@ const loadFiles = async () => {
                   ))}
 
                   {/* Files */}
-                  {files.map(file => {
+                  {filteredFiles.map(file => {
                     const FileIcon = getFileIcon(file.type);
                     return (
                       <div
@@ -355,9 +393,12 @@ const loadFiles = async () => {
                     );
                   })}
 
-                  {files.length === 0 && currentFolders.length === 0 && (
+                  {filteredFiles.length === 0 && filteredFolders.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      No files or folders in this location
+                      {searchQuery 
+                        ? `No files or folders found matching "${searchQuery}"`
+                        : "No files or folders in this location"
+                      }
                     </div>
                   )}
                 </div>
