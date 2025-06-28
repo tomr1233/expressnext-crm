@@ -41,6 +41,36 @@ async function getValidTokens() {
   return { accessToken, refreshToken };
 }
 
+// Helper function to download file from Google Drive
+async function downloadFileFromDrive(drive: any, fileId: string, mimeType: string) {
+  try {
+    // For Google Docs/Sheets/Slides, export as PDF
+    const exportMimeTypes: Record<string, string> = {
+      'application/vnd.google-apps.document': 'application/pdf',
+      'application/vnd.google-apps.spreadsheet': 'application/pdf',
+      'application/vnd.google-apps.presentation': 'application/pdf',
+    };
+
+    if (exportMimeTypes[mimeType]) {
+      const response = await drive.files.export({
+        fileId: fileId,
+        mimeType: exportMimeTypes[mimeType]
+      }, { responseType: 'arraybuffer' });
+      return Buffer.from(response.data);
+    } else {
+      // For regular files, download directly
+      const response = await drive.files.get({
+        fileId: fileId,
+        alt: 'media'
+      }, { responseType: 'arraybuffer' });
+      return Buffer.from(response.data);
+    }
+  } catch (error) {
+    console.error('Error downloading file from Drive:', error);
+    throw error;
+  }
+}
+
 // List files from Google Drive
 export async function GET(request: NextRequest) {
   try {
@@ -136,6 +166,126 @@ export async function GET(request: NextRequest) {
     console.error('Error listing Google Drive files:', error);
     return NextResponse.json(
       { error: 'Failed to list files from Google Drive' },
+      { status: 500 }
+    );
+  }
+}
+
+// Sync files from Google Drive to S3
+export async function POST(request: NextRequest) {
+  try {
+    const tokens = await getValidTokens();
+    
+    if (!tokens || !tokens.accessToken) {
+      return NextResponse.json(
+        { error: 'Not authenticated with Google' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { files, category, department, tags } = body;
+
+    const drive = getDriveClient(tokens.accessToken, tokens.refreshToken);
+    
+    let syncedCount = 0;
+    let errorCount = 0;
+    const errors: Array<{ file: string; error: string }> = [];
+
+    for (const file of files) {
+      try {
+        // Download file from Google Drive
+        const fileBuffer = await downloadFileFromDrive(drive, file.id, file.mimeType);
+        
+        // Generate S3 key
+        const fileExtension = file.name.split('.').pop() || 'bin';
+        const s3Key = `resources/${uuidv4()}.${fileExtension}`;
+        
+        // Upload to S3 (publicly accessible)
+        await s3Client.send(new PutObjectCommand({
+          Bucket: S3_BUCKET_NAME,
+          Key: s3Key,
+          Body: fileBuffer,
+          ContentType: file.mimeType,
+          ACL: 'public-read', // Make file publicly accessible
+        }));
+        
+        // Generate public URL
+        const publicUrl = `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
+        
+        // Save metadata to database
+        const { error: dbError } = await supabase
+          .from('resources')
+          .insert({
+            name: file.name,
+            type: file.type,
+            category,
+            department,
+            description: `Synced from Google Drive`,
+            s3_key: s3Key,
+            file_url: publicUrl,
+            size: file.size,
+            tags,
+            upload_date: new Date().toISOString(),
+            uploaded_by: 'google-drive-sync',
+          });
+        
+        if (dbError) {
+          throw dbError;
+        }
+        
+        syncedCount++;
+      } catch (error) {
+        console.error(`Error syncing file ${file.name}:`, error);
+        errors.push({ file: file.name, error: String(error) });
+        errorCount++;
+      }
+    }
+
+    return NextResponse.json({
+      success: syncedCount > 0,
+      syncedCount,
+      errorCount,
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    console.error('Error syncing files:', error);
+    return NextResponse.json(
+      { error: 'Failed to sync files' },
+      { status: 500 }
+    );
+  }
+}
+
+// Get list of Google Drive folders (for navigation)
+export async function PUT(request: NextRequest) {
+  try {
+    const tokens = await getValidTokens();
+    
+    if (!tokens || !tokens.accessToken) {
+      return NextResponse.json(
+        { error: 'Not authenticated with Google' },
+        { status: 401 }
+      );
+    }
+
+    const drive = getDriveClient(tokens.accessToken, tokens.refreshToken);
+
+    // List folders only
+    const response = await drive.files.list({
+      pageSize: 100,
+      fields: 'files(id, name, parents)',
+      q: "mimeType = 'application/vnd.google-apps.folder' and trashed = false",
+      orderBy: 'name'
+    });
+
+    const folders = response.data.files || [];
+
+    return NextResponse.json({ folders });
+  } catch (error) {
+    console.error('Error listing folders:', error);
+    return NextResponse.json(
+      { error: 'Failed to list folders' },
       { status: 500 }
     );
   }
