@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Agency CRM",
+  title: "ExpressNext | CRM",
   description: "Customer Relationship Management for AI Automation Agency",
 };
 

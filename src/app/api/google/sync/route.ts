@@ -186,6 +186,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { files, category, department, tags } = body;
 
+    if (!files || files.length === 0) {
+      return NextResponse.json(
+        { error: 'No files selected' },
+        { status: 400 }
+      );
+    }
+
     const drive = getDriveClient(tokens.accessToken, tokens.refreshToken);
     
     let syncedCount = 0;
@@ -194,27 +201,49 @@ export async function POST(request: NextRequest) {
 
     for (const file of files) {
       try {
+        console.log(`Syncing file: ${file.name}`);
+        
         // Download file from Google Drive
         const fileBuffer = await downloadFileFromDrive(drive, file.id, file.mimeType);
         
+        // Determine file extension
+        let fileExtension = 'bin';
+        if (file.mimeType.includes('pdf') || file.mimeType.includes('google-apps')) {
+          fileExtension = 'pdf'; // Google Docs are exported as PDF
+        } else if (file.name.includes('.')) {
+          fileExtension = file.name.split('.').pop() || 'bin';
+        }
+        
         // Generate S3 key
-        const fileExtension = file.name.split('.').pop() || 'bin';
         const s3Key = `resources/${uuidv4()}.${fileExtension}`;
         
-        // Upload to S3 (publicly accessible)
-        await s3Client.send(new PutObjectCommand({
+        // Determine content type
+        let contentType = file.mimeType;
+        if (file.mimeType.includes('google-apps')) {
+          contentType = 'application/pdf'; // Since we export Google Docs as PDF
+        }
+        
+        console.log(`Uploading to S3 with key: ${s3Key}`);
+        
+        // Upload to S3 without ACL (let bucket policy handle public access)
+        const putCommand = new PutObjectCommand({
           Bucket: S3_BUCKET_NAME,
           Key: s3Key,
           Body: fileBuffer,
-          ContentType: file.mimeType,
-          ACL: 'public-read', // Make file publicly accessible
-        }));
+          ContentType: contentType,
+        });
         
-        // Generate public URL
+        await s3Client.send(putCommand);
+        
+        // Generate public URL based on your S3 bucket configuration
+        // If your bucket is configured for public access, use the public URL pattern
+        // Otherwise, generate a signed URL
         const publicUrl = `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
         
+        console.log(`File uploaded, saving metadata to database`);
+        
         // Save metadata to database
-        const { error: dbError } = await supabase
+        const { data, error: dbError } = await supabase
           .from('resources')
           .insert({
             name: file.name,
@@ -228,16 +257,23 @@ export async function POST(request: NextRequest) {
             tags,
             upload_date: new Date().toISOString(),
             uploaded_by: 'google-drive-sync',
-          });
+          })
+          .select()
+          .single();
         
         if (dbError) {
-          throw dbError;
+          console.error(`Database error for file ${file.name}:`, dbError);
+          throw new Error(`Database error: ${dbError.message}`);
         }
         
+        console.log(`Successfully synced: ${file.name}`);
         syncedCount++;
       } catch (error) {
         console.error(`Error syncing file ${file.name}:`, error);
-        errors.push({ file: file.name, error: String(error) });
+        errors.push({ 
+          file: file.name, 
+          error: error instanceof Error ? error.message : String(error) 
+        });
         errorCount++;
       }
     }
@@ -251,7 +287,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error syncing files:', error);
     return NextResponse.json(
-      { error: 'Failed to sync files' },
+      { error: 'Failed to sync files: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }
