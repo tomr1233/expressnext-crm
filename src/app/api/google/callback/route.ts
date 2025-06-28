@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const tokens = await getTokensFromCode(code);
     
     // Store tokens in cookies (in production, use a more secure method)
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     
     // Store access token (expires in 1 hour)
     cookieStore.set('google_access_token', tokens.access_token!, {

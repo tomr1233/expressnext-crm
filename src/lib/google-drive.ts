@@ -44,6 +44,17 @@ export async function getTokensFromCode(code: string) {
   return tokens;
 }
 
+// Refresh access token using refresh token
+export async function refreshAccessToken(refreshToken: string) {
+  const oauth2Client = getOAuth2Client();
+  oauth2Client.setCredentials({
+    refresh_token: refreshToken,
+  });
+  
+  const { credentials } = await oauth2Client.refreshAccessToken();
+  return credentials;
+}
+
 // File type mapping
 export function getFileTypeFromMimeType(mimeType: string): 'document' | 'video' | 'image' | 'other' {
   if (mimeType.startsWith('video/')) return 'video';
