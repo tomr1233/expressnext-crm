@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Eye, Video, Image, File, Loader2, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FileText, Download, Eye, Video, Image, File, Loader2, Trash2, X, Maximize2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface Resource {
@@ -49,16 +50,97 @@ const getCategoryColor = (category: string) => {
   return colors[category] || "bg-gray-100 text-gray-800";
 };
 
+// Component to display file preview
+function FilePreview({ resource, onClose }: { resource: Resource; onClose: () => void }) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const renderPreview = () => {
+    if (resource.type === 'image') {
+      return (
+        <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+          <img
+            src={resource.file_url}
+            alt={resource.name}
+            className="max-w-full max-h-[70vh] object-contain mx-auto"
+            onLoad={() => setLoading(false)}
+            onError={() => setError(true)}
+          />
+          {loading && !error && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (resource.type === 'video') {
+      return (
+        <video
+          controls
+          className="w-full max-h-[70vh] rounded-lg"
+          onLoadedData={() => setLoading(false)}
+          onError={() => setError(true)}
+        >
+          <source src={resource.file_url} type="video/mp4" />
+          <source src={resource.file_url} type="video/webm" />
+          Your browser does not support the video tag.
+        </video>
+      );
+    }
+
+    if (resource.type === 'document' && resource.file_url.toLowerCase().endsWith('.pdf')) {
+      return (
+        <iframe
+          src={resource.file_url}
+          className="w-full h-[70vh] rounded-lg border-0"
+          onLoad={() => setLoading(false)}
+          onError={() => setError(true)}
+        />
+      );
+    }
+
+    // For other document types, show a preview with option to open externally
+    return (
+      <div className="text-center py-12">
+        <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-600 mb-4">
+          This file type cannot be previewed inline.
+        </p>
+        <Button onClick={() => window.open(resource.file_url, '_blank')}>
+          Open in New Tab
+        </Button>
+      </div>
+    );
+  };
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 mb-4">Failed to load preview</p>
+        <Button variant="outline" onClick={() => window.open(resource.file_url, '_blank')}>
+          Open in New Tab
+        </Button>
+      </div>
+    );
+  }
+
+  return renderPreview();
+}
+
 export function ResourcesGrid() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [previewResource, setPreviewResource] = useState<Resource | null>(null);
 
   const fetchResources = async () => {
     try {
       const response = await fetch("/api/resources");
       if (!response.ok) throw new Error("Failed to fetch resources");
       const data = await response.json();
+      // Since files are now publicly accessible, we can use file_url directly
       setResources(data);
     } catch (error) {
       console.error("Error fetching resources:", error);
@@ -72,28 +154,31 @@ export function ResourcesGrid() {
   }, []);
 
   const handleView = (resource: Resource) => {
-    if (resource.file_url) {
+    // For inline viewable types, open preview modal
+    if (['image', 'video', 'document'].includes(resource.type)) {
+      setPreviewResource(resource);
+    } else {
+      // For other types, open in new tab
       window.open(resource.file_url, "_blank");
     }
   };
 
   const handleDownload = async (resource: Resource) => {
-    if (resource.download_url) {
-      try {
-        const response = await fetch(resource.download_url);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = resource.name;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } catch (error) {
-        console.error("Download error:", error);
-        alert("Failed to download file");
-      }
+    try {
+      // Use the public URL directly for download
+      const response = await fetch(resource.file_url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = resource.name;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Failed to download file");
     }
   };
 
@@ -130,90 +215,144 @@ export function ResourcesGrid() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500">No resources uploaded yet.</p>
-        <p className="text-sm text-gray-400 mt-2">Click "Upload Resource" to add your first resource.</p>
+        <p className="text-sm text-gray-400 mt-2">Click "Upload Resource" or "Google Drive Sync" to add your first resource.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {resources.map((resource) => {
-        const FileIcon = getFileIcon(resource.type);
-        
-        return (
-          <Card key={resource.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <FileIcon className="h-5 w-5 text-gray-600" />
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {resources.map((resource) => {
+          const FileIcon = getFileIcon(resource.type);
+          
+          return (
+            <Card key={resource.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gray-100 rounded-lg">
+                      <FileIcon className="h-5 w-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-sm font-medium truncate">{resource.name}</CardTitle>
+                      <p className="text-xs text-gray-500 mt-1">{resource.size}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-sm font-medium truncate">{resource.name}</CardTitle>
-                    <p className="text-xs text-gray-500 mt-1">{resource.size}</p>
+                  <Badge className={getCategoryColor(resource.category)}>
+                    {resource.category}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Thumbnail preview for images */}
+                  {resource.type === 'image' && (
+                    <div 
+                      className="relative h-32 bg-gray-100 rounded-lg overflow-hidden cursor-pointer group"
+                      onClick={() => handleView(resource)}
+                    >
+                      <img
+                        src={resource.file_url}
+                        alt={resource.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
+                        <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-sm text-gray-600 line-clamp-2">{resource.description}</p>
+                  
+                  <div className="flex flex-wrap gap-1">
+                    {resource.tags.map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>{resource.department}</span>
+                    <span>
+                      {formatDistanceToNow(new Date(resource.upload_date), { addSuffix: true })}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleView(resource)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleDownload(resource)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Download
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(resource.id)}
+                      disabled={deletingId === resource.id}
+                    >
+                      {deletingId === resource.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
                 </div>
-                <Badge className={getCategoryColor(resource.category)}>
-                  {resource.category}
-                </Badge>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Preview Modal */}
+      <Dialog open={!!previewResource} onOpenChange={(open) => !open && setPreviewResource(null)}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span className="truncate pr-4">{previewResource?.name}</span>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => previewResource && window.open(previewResource.file_url, '_blank')}
+                >
+                  <Maximize2 className="h-4 w-4 mr-1" />
+                  Full Screen
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => previewResource && handleDownload(previewResource)}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Download
+                </Button>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600 line-clamp-2">{resource.description}</p>
-                
-                <div className="flex flex-wrap gap-1">
-                  {resource.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>{resource.department}</span>
-                  <span>
-                    {formatDistanceToNow(new Date(resource.upload_date), { addSuffix: true })}
-                  </span>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => handleView(resource)}
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => handleDownload(resource)}
-                  >
-                    <Download className="h-4 w-4 mr-1" />
-                    Download
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(resource.id)}
-                    disabled={deletingId === resource.id}
-                  >
-                    {deletingId === resource.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+            </DialogTitle>
+          </DialogHeader>
+          {previewResource && (
+            <FilePreview 
+              resource={previewResource} 
+              onClose={() => setPreviewResource(null)} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
