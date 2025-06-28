@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FileText, Download, Eye, Video, Image, File, Loader2, Trash2, X, Maximize2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface Resource {
   id: string;
@@ -49,6 +50,94 @@ const getCategoryColor = (category: string) => {
   };
   return colors[category] || "bg-gray-100 text-gray-800";
 };
+
+// Component to display thumbnails with loading states
+function ResourceThumbnail({ resource, onClick }: { resource: Resource; onClick: () => void }) {
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  const FileIcon = getFileIcon(resource.type);
+
+  // Function to get optimized thumbnail URL
+  const getThumbnailSrc = () => {
+    if (resource.type !== 'image') return null;
+    
+    // If you're using a proxy service like wsrv.nl (free)
+    const thumbnailUrl = `https://wsrv.nl/?url=${encodeURIComponent(resource.file_url)}&w=300&h=300&fit=cover&q=80`;
+    return thumbnailUrl;
+  };
+
+  if (resource.type === 'image' && !imageError) {
+    const thumbnailSrc = getThumbnailSrc();
+    
+    return (
+      <div 
+        className="relative h-32 bg-gray-100 rounded-lg overflow-hidden cursor-pointer group"
+        onClick={onClick}
+      >
+        {imageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        )}
+        <img
+          src={thumbnailSrc || resource.file_url}
+          alt={resource.name}
+          className={cn(
+            "w-full h-full object-cover transition-opacity duration-200",
+            imageLoading ? "opacity-0" : "opacity-100"
+          )}
+          loading="lazy"
+          onLoad={() => setImageLoading(false)}
+          onError={(e) => {
+            // If thumbnail fails, try original
+            if (thumbnailSrc && e.currentTarget.src === thumbnailSrc) {
+              e.currentTarget.src = resource.file_url;
+            } else {
+              setImageError(true);
+              setImageLoading(false);
+            }
+          }}
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
+          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+      </div>
+    );
+  }
+
+  if (resource.type === 'video') {
+    return (
+      <div 
+        className="relative h-32 bg-gray-900 rounded-lg overflow-hidden cursor-pointer group"
+        onClick={onClick}
+      >
+        <div className="w-full h-full flex items-center justify-center">
+          <Video className="h-12 w-12 text-gray-400" />
+        </div>
+        <div className="absolute bottom-2 left-2 right-2">
+          <div className="text-xs text-white bg-black bg-opacity-60 px-2 py-1 rounded truncate">
+            {resource.name}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default thumbnail for other file types
+  return (
+    <div 
+      className="relative h-32 bg-gray-50 rounded-lg overflow-hidden cursor-pointer group"
+      onClick={onClick}
+    >
+      <div className="w-full h-full flex flex-col items-center justify-center p-4">
+        <FileIcon className="h-12 w-12 text-gray-400 mb-2" />
+        <div className="text-xs text-gray-500 text-center truncate max-w-full">
+          {resource.name.split('.').pop()?.toUpperCase() || 'FILE'}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Component to display file preview
 function FilePreview({ resource, onClose }: { resource: Resource; onClose: () => void }) {
@@ -246,22 +335,11 @@ export function ResourcesGrid() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Thumbnail preview for images */}
-                  {resource.type === 'image' && (
-                    <div 
-                      className="relative h-32 bg-gray-100 rounded-lg overflow-hidden cursor-pointer group"
-                      onClick={() => handleView(resource)}
-                    >
-                      <img
-                        src={resource.file_url}
-                        alt={resource.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
-                        <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                  )}
+                  {/* Thumbnail preview */}
+                  <ResourceThumbnail 
+                    resource={resource} 
+                    onClick={() => handleView(resource)} 
+                  />
 
                   <p className="text-sm text-gray-600 line-clamp-2">{resource.description}</p>
                   

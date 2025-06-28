@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image"; // Import the Next.js Image component
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -35,10 +36,28 @@ export function Sidebar() {
         collapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        {!collapsed && (
-          <h1 className="text-xl font-bold text-gray-900">AI Agency CRM</h1>
+      {/* --- MODIFIED HEADER --- */}
+      <div
+        className={cn(
+          "flex items-center p-4 border-b border-gray-200",
+          // When collapsed, center the button; otherwise, space out logo and button
+          collapsed ? "justify-center" : "justify-between"
         )}
+      >
+        {/* Logo and Title - only shown when not collapsed */}
+        {!collapsed && (
+          <div className="flex items-center gap-2">
+            <Image
+              src="https://imagesexpresstxt.s3.ap-southeast-2.amazonaws.com/c56cfb28-35b3-4c0b-8055-e3f434f4d644.png"
+              alt="ExpressNext Logo"
+              width={32}
+              height={32}
+            />
+            <h1 className="text-xl font-bold text-gray-900">ExpressNext</h1>
+          </div>
+        )}
+
+        {/* Collapse/Expand Button */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
@@ -50,6 +69,7 @@ export function Sidebar() {
           )}
         </button>
       </div>
+      {/* --- END OF MODIFIED HEADER --- */}
 
       <nav className="flex-1 p-4 space-y-2">
         {navigation.map((item) => {
