@@ -97,7 +97,7 @@ export function OnboardingList() {
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-900">Onboarding Steps</h4>
+                <h4 className="text-sm font-medium text-foreground">Onboarding Steps</h4>
                 {client.steps.map((step, index) => (
                   <div key={index} className="flex items-center space-x-2">
                     {step.completed ? (
@@ -107,7 +107,7 @@ export function OnboardingList() {
                     )}
                     <span
                       className={`text-sm ${
-                        step.completed ? "text-gray-900" : "text-gray-500"
+                        step.completed ? "text-foreground" : "text-gray-500"
                       }`}
                     >
                       {step.name}

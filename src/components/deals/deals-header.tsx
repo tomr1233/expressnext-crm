@@ -5,8 +5,8 @@ export function DealsHeader() {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Closed Deals</h1>
-        <p className="text-gray-600 mt-2">Review your won deals and performance</p>
+        <h1 className="text-3xl font-bold text-foreground">Closed Deals</h1>
+        <p className="text-muted-foreground mt-2">Review your won deals and performance</p>
       </div>
       <div className="flex items-center space-x-3">
         <Button variant="outline" size="sm">

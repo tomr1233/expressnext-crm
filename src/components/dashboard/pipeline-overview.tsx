@@ -18,11 +18,11 @@ export function PipelineOverview() {
           {pipelineStages.map((stage) => (
             <div key={stage.name} className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">{stage.name}</p>
-                <p className="text-xs text-gray-500">{stage.count} deals</p>
+                <p className="text-sm font-medium text-foreground">{stage.name}</p>
+                <p className="text-xs text-muted-foreground">{stage.count} deals</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{stage.value}</p>
+                <p className="text-sm font-medium text-foreground">{stage.value}</p>
               </div>
             </div>
           ))}

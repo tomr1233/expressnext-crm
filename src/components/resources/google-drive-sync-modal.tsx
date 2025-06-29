@@ -325,7 +325,7 @@ const loadFiles = async () => {
             <div className="flex-1 overflow-y-auto min-h-[300px]">
             {loading ? (
                 <div className="flex items-center justify-center h-full">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-400 dark:text-gray-500" />
                 </div>
                 ) : needsAuth ? (
                 <div className="flex flex-col items-center justify-center h-full space-y-4 p-8">
