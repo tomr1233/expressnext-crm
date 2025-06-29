@@ -32,14 +32,14 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "bg-white border-r border-gray-200 flex flex-col transition-all duration-300",
+        "bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* --- MODIFIED HEADER --- */}
       <div
         className={cn(
-          "flex items-center p-4 border-b border-gray-200",
+          "flex items-center p-4 border-b border-sidebar-border",
           // When collapsed, center the button; otherwise, space out logo and button
           collapsed ? "justify-center" : "justify-between"
         )}
@@ -53,14 +53,14 @@ export function Sidebar() {
               width={32}
               height={32}
             />
-            <h1 className="text-xl font-bold text-gray-900">ExpressNext</h1>
+            <h1 className="text-xl font-bold text-sidebar-foreground">ExpressNext</h1>
           </div>
         )}
 
         {/* Collapse/Expand Button */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-sidebar-accent transition-colors text-sidebar-foreground"
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -81,8 +81,8 @@ export function Sidebar() {
               className={cn(
                 "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-blue-50 text-blue-700 border border-blue-200"
-                  : "text-gray-700 hover:bg-gray-100",
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground border border-sidebar-border"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 collapsed && "justify-center"
               )}
               title={collapsed ? item.name : undefined}
