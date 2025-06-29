@@ -5,7 +5,7 @@ export function OnboardingHeader() {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Client Onboarding</h1>
+        <h1 className="text-3xl font-bold text-foreground">Client Onboarding</h1>
         <p className="text-gray-600 mt-2">Manage post-sale client handoff and setup</p>
       </div>
       <div className="flex items-center space-x-3">

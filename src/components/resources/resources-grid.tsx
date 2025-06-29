@@ -41,14 +41,14 @@ const getFileIcon = (type: string) => {
 
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
-    Sales: "bg-blue-100 text-blue-800",
-    Demo: "bg-purple-100 text-purple-800",
-    Process: "bg-green-100 text-green-800",
-    Brand: "bg-pink-100 text-pink-800",
-    Templates: "bg-yellow-100 text-yellow-800",
-    Technical: "bg-gray-100 text-gray-800",
+    Sales: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
+    Demo: "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400",
+    Process: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+    Brand: "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400",
+    Templates: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+    Technical: "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",
   };
-  return colors[category] || "bg-gray-100 text-gray-800";
+  return colors[category] || "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
 };
 
 // Component to display thumbnails with loading states
@@ -71,7 +71,7 @@ function ResourceThumbnail({ resource, onClick }: { resource: Resource; onClick:
     
     return (
       <div 
-        className="relative h-32 bg-gray-100 rounded-lg overflow-hidden cursor-pointer group"
+        className="relative h-32 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer group"
         onClick={onClick}
       >
         {imageLoading && (
@@ -108,11 +108,11 @@ function ResourceThumbnail({ resource, onClick }: { resource: Resource; onClick:
   if (resource.type === 'video') {
     return (
       <div 
-        className="relative h-32 bg-gray-900 rounded-lg overflow-hidden cursor-pointer group"
+        className="relative h-32 bg-gray-900 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer group"
         onClick={onClick}
       >
         <div className="w-full h-full flex items-center justify-center">
-          <Video className="h-12 w-12 text-gray-400" />
+          <Video className="h-12 w-12 text-gray-400 dark:text-gray-500" />
         </div>
         <div className="absolute bottom-2 left-2 right-2">
           <div className="text-xs text-white bg-black bg-opacity-60 px-2 py-1 rounded truncate">
@@ -126,12 +126,12 @@ function ResourceThumbnail({ resource, onClick }: { resource: Resource; onClick:
   // Default thumbnail for other file types
   return (
     <div 
-      className="relative h-32 bg-gray-50 rounded-lg overflow-hidden cursor-pointer group"
+      className="relative h-32 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer group"
       onClick={onClick}
     >
       <div className="w-full h-full flex flex-col items-center justify-center p-4">
-        <FileIcon className="h-12 w-12 text-gray-400 mb-2" />
-        <div className="text-xs text-gray-500 text-center truncate max-w-full">
+        <FileIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" />
+        <div className="text-xs text-gray-500 dark:text-gray-400 text-center truncate max-w-full">
           {resource.name.split('.').pop()?.toUpperCase() || 'FILE'}
         </div>
       </div>
@@ -147,7 +147,7 @@ function FilePreview({ resource, onClose }: { resource: Resource; onClose: () =>
   const renderPreview = () => {
     if (resource.type === 'image') {
       return (
-        <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+        <div className="relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
           <img
             src={resource.file_url}
             alt={resource.name}
@@ -157,7 +157,7 @@ function FilePreview({ resource, onClose }: { resource: Resource; onClose: () =>
           />
           {loading && !error && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400 dark:text-gray-500" />
             </div>
           )}
         </div>
@@ -193,8 +193,8 @@ function FilePreview({ resource, onClose }: { resource: Resource; onClose: () =>
     // For other document types, show a preview with option to open externally
     return (
       <div className="text-center py-12">
-        <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600 mb-4">
+        <FileText className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+        <p className="text-muted-foreground mb-4">
           This file type cannot be previewed inline.
         </p>
         <Button onClick={() => window.open(resource.file_url, '_blank')}>
@@ -295,7 +295,7 @@ export function ResourcesGrid() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400 dark:text-gray-500" />
       </div>
     );
   }
@@ -303,8 +303,8 @@ export function ResourcesGrid() {
   if (resources.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">No resources uploaded yet.</p>
-        <p className="text-sm text-gray-400 mt-2">Click "Upload Resource" or "Google Drive Sync" to add your first resource.</p>
+        <p className="text-muted-foreground">No resources uploaded yet.</p>
+        <p className="text-sm text-muted-foreground/80 mt-2">Click "Upload Resource" or "Google Drive Sync" to add your first resource.</p>
       </div>
     );
   }
@@ -320,12 +320,12 @@ export function ResourcesGrid() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <FileIcon className="h-5 w-5 text-gray-600" />
+                    <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                      <FileIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <CardTitle className="text-sm font-medium truncate">{resource.name}</CardTitle>
-                      <p className="text-xs text-gray-500 mt-1">{resource.size}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{resource.size}</p>
                     </div>
                   </div>
                   <Badge className={getCategoryColor(resource.category)}>
@@ -341,7 +341,7 @@ export function ResourcesGrid() {
                     onClick={() => handleView(resource)} 
                   />
 
-                  <p className="text-sm text-gray-600 line-clamp-2">{resource.description}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{resource.description}</p>
                   
                   <div className="flex flex-wrap gap-1">
                     {resource.tags.map((tag) => (
@@ -351,7 +351,7 @@ export function ResourcesGrid() {
                     ))}
                   </div>
                   
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{resource.department}</span>
                     <span>
                       {formatDistanceToNow(new Date(resource.upload_date), { addSuffix: true })}

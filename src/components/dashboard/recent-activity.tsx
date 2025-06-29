@@ -52,12 +52,12 @@ export function RecentActivity() {
                 <AvatarFallback>{activity.avatar}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-foreground">
                   <span className="font-medium">{activity.user}</span>{" "}
                   {activity.action}{" "}
                   <span className="font-medium">{activity.target}</span>
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {formatDistanceToNow(activity.time, { addSuffix: true })}
                 </p>
               </div>

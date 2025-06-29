@@ -45,76 +45,76 @@ export function LeadsList() {
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Name & Company
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Source
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Bio Match %
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Followers
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Website
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Tags
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-border">
               {leads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-gray-50">
+                <tr key={lead.id} className="hover:bg-muted/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-foreground">
                         {lead.name}
                       </div>
-                      <div className="text-sm text-gray-500">{lead.company}</div>
+                      <div className="text-sm text-muted-foreground">{lead.company}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     {lead.source}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-foreground">
                         {lead.bioMatch}%
                       </div>
                       <div
                         className={`ml-2 h-2 w-16 rounded-full ${
                           lead.bioMatch >= 80
-                            ? "bg-green-200"
+                            ? "bg-green-200 dark:bg-green-900"
                             : lead.bioMatch >= 60
-                            ? "bg-yellow-200"
-                            : "bg-red-200"
+                            ? "bg-yellow-200 dark:bg-yellow-900"
+                            : "bg-red-200 dark:bg-red-900"
                         }`}
                       >
                         <div
                           className={`h-2 rounded-full ${
                             lead.bioMatch >= 80
-                              ? "bg-green-500"
+                              ? "bg-green-500 dark:bg-green-400"
                               : lead.bioMatch >= 60
-                              ? "bg-yellow-500"
-                              : "bg-red-500"
+                              ? "bg-yellow-500 dark:bg-yellow-400"
+                              : "bg-red-500 dark:bg-red-400"
                           }`}
                           style={{ width: `${lead.bioMatch}%` }}
                         />
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     {lead.followers.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -122,7 +122,7 @@ export function LeadsList() {
                       href={lead.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 flex items-center"
+                      className="text-primary hover:text-primary/80 flex items-center"
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       <span className="text-sm">Visit</span>

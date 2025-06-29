@@ -5,7 +5,7 @@ export function PipelineHeader() {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Active Pipeline</h1>
+        <h1 className="text-3xl font-bold text-foreground">Active Pipeline</h1>
         <p className="text-gray-600 mt-2">Track deals through your sales process</p>
       </div>
       <div className="flex items-center space-x-3">
