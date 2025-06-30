@@ -1,7 +1,7 @@
 // src/app/api/resources/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
 
@@ -118,6 +118,28 @@ export async function DELETE(request: NextRequest) {
       throw fetchError;
     }
 
+    if (!resource || !resource.s3_key) {
+      return NextResponse.json(
+        { error: "Resource not found or missing S3 key" },
+        { status: 404 }
+      );
+    }
+
+    // Delete from S3
+    try {
+      const deleteCommand = new DeleteObjectCommand({
+        Bucket: S3_BUCKET_NAME,
+        Key: resource.s3_key,
+      });
+
+      await s3Client.send(deleteCommand);
+      console.log(`Successfully deleted file from S3: ${resource.s3_key}`);
+    } catch (s3Error) {
+      console.error("Error deleting from S3:", s3Error);
+      // Continue with database deletion even if S3 deletion fails
+      // You might want to implement a retry mechanism or alert system here
+    }
+
     // Delete from database
     const { error: deleteError } = await supabase
       .from("resources")
@@ -128,10 +150,10 @@ export async function DELETE(request: NextRequest) {
       throw deleteError;
     }
 
-    // Note: You might also want to delete from S3, but that requires additional permissions
-    // and error handling. For now, we'll just remove the database record.
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: "Resource deleted successfully" 
+    });
   } catch (error) {
     console.error("Error deleting resource:", error);
     return NextResponse.json(
