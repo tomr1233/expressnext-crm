@@ -1,6 +1,5 @@
 // src/lib/google-drive.ts
 import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
 
 // Initialize OAuth2 client
 export function getOAuth2Client() {

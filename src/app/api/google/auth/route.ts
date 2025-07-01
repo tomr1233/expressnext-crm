@@ -1,5 +1,5 @@
 // src/app/api/google/auth/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getAuthUrl } from '@/lib/google-drive';
 
 export async function GET() {
