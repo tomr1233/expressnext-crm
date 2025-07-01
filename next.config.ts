@@ -1,4 +1,3 @@
-// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -11,23 +10,20 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'wsrv.nl', // For image optimization
+        hostname: 'wsrv.nl',
         pathname: '/**',
       }
     ],
-    // Enable image optimization
     formats: ['image/avif', 'image/webp'],
   },
   
-  // Enable SWC minification for better performance
-  swcMinify: true,
+  // Remove swcMinify as it's default in Next.js 15
   
-  // Optimize production builds
+  // Disable source maps in production for smaller builds
   productionBrowserSourceMaps: false,
   
-  // Enable experimental features for better performance
+  // Experimental features compatible with Next.js 15
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
@@ -45,19 +41,19 @@ const nextConfig: NextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload'
           },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
         ],
-      },
-    ];
-  },
-  
-  // Redirect www to non-www (or vice versa)
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'www.yourdomain.com' }],
-        destination: 'https://yourdomain.com/:path*',
-        permanent: true,
       },
     ];
   },
