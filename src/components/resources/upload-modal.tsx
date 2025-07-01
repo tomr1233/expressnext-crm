@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, X, FileIcon, Image, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { generateImageThumbnail, generateVideoThumbnail, canGenerateThumbnail } from "@/lib/client-thumbnails";
 
 interface UploadModalProps {
   open: boolean;

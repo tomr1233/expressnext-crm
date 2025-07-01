@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, getFileTypeFromMimeType, formatBytes, refreshAccessToken } from '@/lib/google-drive';
 import { supabase } from '@/lib/supabase';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { cookies } from 'next/headers';
+import { drive_v3 } from 'googleapis'; // <-- FIX: Added import
 
 // Helper function to get and validate tokens
 async function getValidTokens() {
@@ -42,7 +42,7 @@ async function getValidTokens() {
 }
 
 // Helper function to download file from Google Drive
-async function downloadFileFromDrive(drive: any, fileId: string, mimeType: string) {
+async function downloadFileFromDrive(drive: drive_v3.Drive, fileId: string, mimeType: string) { // <-- FIX: Changed 'any' to 'drive_v3.Drive'
   try {
     // For Google Docs/Sheets/Slides, export as PDF
     const exportMimeTypes: Record<string, string> = {
@@ -56,14 +56,14 @@ async function downloadFileFromDrive(drive: any, fileId: string, mimeType: strin
         fileId: fileId,
         mimeType: exportMimeTypes[mimeType]
       }, { responseType: 'arraybuffer' });
-      return Buffer.from(response.data);
+      return Buffer.from(response.data as ArrayBuffer);
     } else {
       // For regular files, download directly
       const response = await drive.files.get({
         fileId: fileId,
         alt: 'media'
       }, { responseType: 'arraybuffer' });
-      return Buffer.from(response.data);
+      return Buffer.from(response.data as ArrayBuffer);
     }
   } catch (error) {
     console.error('Error downloading file from Drive:', error);
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
       const files = response.data.files || [];
 
       // Transform files to match our resource structure
-      const transformedFiles = files.map(file => ({
+      const transformedFiles = files.map((file: any) => ({
         id: file.id,
         name: file.name || 'Untitled',
         mimeType: file.mimeType || 'application/octet-stream',
@@ -115,9 +115,11 @@ export async function GET(request: NextRequest) {
       }));
 
       return NextResponse.json({ files: transformedFiles });
-    } catch (driveError: any) {
+    } catch (driveError: unknown) { // <-- FIX: Changed 'any' to 'unknown'
+      const error = driveError as { response?: { status?: number } };
+      
       // If we get a 401 from Google, the token might be expired
-      if (driveError.response?.status === 401 && tokens.refreshToken) {
+      if (error.response?.status === 401 && tokens.refreshToken) {
         try {
           const newTokens = await refreshAccessToken(tokens.refreshToken);
           const cookieStore = await cookies();
@@ -138,7 +140,7 @@ export async function GET(request: NextRequest) {
           });
 
           const files = response.data.files || [];
-          const transformedFiles = files.map(file => ({
+          const transformedFiles = files.map((file: any) => ({
             id: file.id,
             name: file.name || 'Untitled',
             mimeType: file.mimeType || 'application/octet-stream',
@@ -236,14 +238,12 @@ export async function POST(request: NextRequest) {
         await s3Client.send(putCommand);
         
         // Generate public URL based on your S3 bucket configuration
-        // If your bucket is configured for public access, use the public URL pattern
-        // Otherwise, generate a signed URL
         const publicUrl = `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
         
         console.log(`File uploaded, saving metadata to database`);
         
         // Save metadata to database
-        const { data, error: dbError } = await supabase
+        const { data: _, error: dbError } = await supabase // <-- FIX: Ignored unused 'data'
           .from('resources')
           .insert({
             name: file.name,
@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Get list of Google Drive folders (for navigation)
-export async function PUT(request: NextRequest) {
+export async function PUT(_request: NextRequest) { // <-- FIX: Ignored unused 'request'
   try {
     const tokens = await getValidTokens();
     
