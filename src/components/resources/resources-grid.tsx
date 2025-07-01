@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileText, Download, Eye, Video, Image, File, Loader2, Trash2, X, Maximize2 } from "lucide-react";
+import { FileText, Download, Eye, Video, Image, File, Loader2, Trash2, Maximize2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -140,7 +140,7 @@ function ResourceThumbnail({ resource, onClick }: { resource: Resource; onClick:
 }
 
 // Component to display file preview
-function FilePreview({ resource, onClose }: { resource: Resource; onClose: () => void }) {
+function FilePreview({ resource }: { resource: Resource; onClose: () => void }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
