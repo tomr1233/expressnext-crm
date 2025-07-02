@@ -1,4 +1,3 @@
-// src/app/error.tsx
 'use client';
 
 import { useEffect } from 'react';
@@ -14,9 +13,6 @@ export default function Error({
   useEffect(() => {
     // Log the error to an error reporting service
     console.error(error);
-    
-    // You can integrate with services like Sentry here
-    // Sentry.captureException(error);
   }, [error]);
 
   return (
@@ -28,32 +24,4 @@ export default function Error({
       <Button onClick={reset}>Try again</Button>
     </div>
   );
-}
-
-// src/app/api/route-wrapper.ts
-import { NextResponse } from 'next/server';
-
-type RouteHandler = () => Promise<NextResponse>;
-
-export function withErrorHandling(handler: RouteHandler): RouteHandler {
-  return async () => {
-    try {
-      return await handler(req);
-    } catch (error) {
-      console.error('API Error:', error);
-      
-      // Log to monitoring service
-      // await logToMonitoringService(error, req);
-      
-      return NextResponse.json(
-        { 
-          error: 'Internal Server Error',
-          message: process.env.NODE_ENV === 'development' 
-            ? (error as Error).message 
-            : 'Something went wrong'
-        },
-        { status: 500 }
-      );
-    }
-  };
 }

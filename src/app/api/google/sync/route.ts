@@ -2,7 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient } from '@/lib/google-drive';
 import { supabase } from '@/lib/supabase';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import * as S3Client from "@aws-sdk/client-s3";
+console.log(S3Client);
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { drive_v3 } from 'googleapis';
