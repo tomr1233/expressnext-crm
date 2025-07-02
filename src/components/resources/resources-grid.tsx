@@ -304,7 +304,7 @@ export function ResourcesGrid() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">No resources uploaded yet.</p>
-        <p className="text-sm text-muted-foreground/80 mt-2">Click "Upload Resource" or "Google Drive Sync" to add your first resource.</p>
+        <p className="text-sm text-muted-foreground/80 mt-2">Click &quot;Upload Resource&quot; or &quot;Google Drive Sync&quot; to add your first resource.</p>
       </div>
     );
   }

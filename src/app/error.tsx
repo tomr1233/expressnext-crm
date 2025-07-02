@@ -31,12 +31,12 @@ export default function Error({
 }
 
 // src/app/api/route-wrapper.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-type RouteHandler = (req: NextRequest) => Promise<NextResponse>;
+type RouteHandler = () => Promise<NextResponse>;
 
 export function withErrorHandling(handler: RouteHandler): RouteHandler {
-  return async (req: NextRequest) => {
+  return async () => {
     try {
       return await handler(req);
     } catch (error) {
