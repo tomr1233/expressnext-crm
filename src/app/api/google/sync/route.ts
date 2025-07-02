@@ -6,7 +6,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { drive_v3 } from 'googleapis';
-import { getValidTokens } from  '../../../../lib/google-auth-helpers'; // Helper
+import { getValidTokens } from '@/lib/google-auth-helpers'; // Helper
 
 // Helper function to download file from Google Drive
 async function downloadFileFromDrive(drive: drive_v3.Drive, fileId: string, mimeType: string) { // <-- FIX: Changed 'any' to 'drive_v3.Drive'
@@ -107,8 +107,7 @@ export async function POST(request: NextRequest) {
         
         console.log(`File uploaded, saving metadata to database`);
         
-        // Save metadata to database
-        const { data: _, error: dbError } = await supabase // <-- FIX: Ignored unused 'data'
+        const { error: dbError } = await supabase
           .from('resources')
           .insert({
             name: file.name,

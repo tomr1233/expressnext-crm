@@ -2,6 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, getFileTypeFromMimeType, formatBytes } from '@/lib/google-drive';
 import { getValidTokens } from  '../../../../lib/google-auth-helpers';
+import { drive_v3 } from 'googleapis';
+
+// Define Schema$File for better readability
+type Schema$File = drive_v3.Schema$File;
+
+// The unused 'files' constant has been removed from here.
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,23 +28,22 @@ export async function GET(request: NextRequest) {
     });
 
     const files = response.data.files || [];
-    const transformedFiles = files.map((file: any) => ({
-      id: file.id,
-      name: file.name || 'Untitled',
-      mimeType: file.mimeType || 'application/octet-stream',
-      type: getFileTypeFromMimeType(file.mimeType || ''),
-      size: formatBytes(parseInt(file.size || '0')),
-      sizeBytes: parseInt(file.size || '0'),
-      createdTime: file.createdTime,
-      modifiedTime: file.modifiedTime,
-      webViewLink: file.webViewLink,
-      parents: file.parents
-    }));
+    const transformedFiles = files.map((file: Schema$File) => ({
+        id: file.id ?? undefined,
+        name: file.name || 'Untitled',
+        mimeType: file.mimeType || 'application/octet-stream',
+        type: getFileTypeFromMimeType(file.mimeType || ''),
+        size: formatBytes(parseInt(file.size || '0')),
+        sizeBytes: parseInt(file.size || '0'),
+        createdTime: file.createdTime ?? undefined,
+        modifiedTime: file.modifiedTime ?? undefined,
+        webViewLink: file.webViewLink ?? undefined,
+        parents: file.parents
+      }));
 
+    
     return NextResponse.json({ files: transformedFiles });
   } catch (error) {
-    // Note: The token refresh logic from your original GET is omitted for brevity
-    // but should be included here or within getValidTokens.
     console.error('Error listing Google Drive files:', error);
     return NextResponse.json({ error: 'Failed to list files from Google Drive' }, { status: 500 });
   }
