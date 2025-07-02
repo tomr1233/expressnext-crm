@@ -1,9 +1,8 @@
-// src/lib/google-auth-helpers.ts
 import { cookies } from 'next/headers';
 import { refreshAccessToken } from '@/lib/google-drive';
 
 export async function getValidTokens() {
-  const cookieStore = cookies(); // Correctly call cookies() inside the async function
+  const cookieStore = await cookies();
   let accessToken = cookieStore.get('google_access_token')?.value;
   const refreshToken = cookieStore.get('google_refresh_token')?.value;
 

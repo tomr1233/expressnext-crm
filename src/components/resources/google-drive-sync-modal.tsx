@@ -1,7 +1,7 @@
 // src/components/resources/google-drive-sync-modal.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -81,46 +81,52 @@ export function GoogleDriveSyncModal({ open, onOpenChange, onSyncComplete }: Goo
     }
   }, [open, currentFolderId]);
 
-// Update the loadFiles function
-const loadFiles = async () => {
-    setLoading(true);
-    setNeedsAuth(false);
-    try {
-      const url = currentFolderId 
-        ? `/api/google/sync?folderId=${currentFolderId}`
-        : '/api/google/sync';
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        if (response.status === 401) {
-          // Not authenticated, show connect button
-          setNeedsAuth(true);
-          return;
-        }
-        throw new Error('Failed to load files');
+// Update the loadFiles function to use the correct endpoint
+const loadFiles = useCallback(async () => {
+  setLoading(true);
+  setNeedsAuth(false);
+  try {
+    const url = currentFolderId 
+      ? `/api/google/files?folderId=${currentFolderId}`
+      : '/api/google/files';
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      if (response.status === 401) {
+        setNeedsAuth(true);
+        return;
       }
-      
-      const data = await response.json();
-      setFiles(data.files);
-    } catch (error) {
-      console.error('Error loading files:', error);
-      alert('Failed to load files from Google Drive');
-    } finally {
-      setLoading(false);
+      throw new Error('Failed to load files');
     }
-  };
+    
+    const data = await response.json();
+    setFiles(data.files);
+  } catch (error) {
+    console.error('Error loading files:', error);
+    alert('Failed to load files from Google Drive');
+  } finally {
+    setLoading(false);
+  }
+}, [currentFolderId]);
 
-  const loadFolders = async () => {
-    try {
-      const response = await fetch('/api/google/sync', { method: 'PUT' });
-      if (response.ok) {
-        const data = await response.json();
-        setFolders(data.folders);
-      }
-    } catch (error) {
-      console.error('Error loading folders:', error);
+const loadFolders = useCallback(async () => {
+  try {
+    const response = await fetch('/api/google/folders');
+    if (response.ok) {
+      const data = await response.json();
+      setFolders(data.folders);
     }
-  };
+  } catch (error) {
+    console.error('Error loading folders:', error);
+  }
+}, []);
+
+useEffect(() => {
+  if (open) {
+    loadFiles();
+    loadFolders();
+  }
+}, [open, loadFiles, loadFolders]);
 
   const getFileIcon = (type: string) => {
     switch (type) {

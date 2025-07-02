@@ -1,14 +1,8 @@
-// src/app/api/google/folders/route.ts
-import { NextResponse } from 'next/server'; // We no longer need NextRequest
+import { NextResponse } from 'next/server';
 import { getDriveClient } from '@/lib/google-drive';
-import { getValidTokens } from '../../../../lib/google-auth-helpers';
+import { getValidTokens } from '@/lib/google-auth-helpers';
 
-// BEFORE (Your current code)
-// export async function GET(_request: NextRequest) {
-
-// AFTER (Corrected)
-// The function now takes no parameters.
-export async function GET() { 
+export async function GET() {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
