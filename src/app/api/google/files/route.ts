@@ -1,6 +1,6 @@
 // src/app/api/google/files/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getDriveClient, getFileTypeFromMimeType, formatBytes, refreshAccessToken } from '@/lib/google-drive';
+import { getDriveClient, getFileTypeFromMimeType, formatBytes } from '@/lib/google-drive';
 import { getValidTokens } from  '../../../../lib/google-auth-helpers';
 
 export async function GET(request: NextRequest) {
