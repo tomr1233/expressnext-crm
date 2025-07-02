@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient } from '@/lib/google-drive';
 import { getValidTokens } from '../../../../lib/google-auth-helpers'; // Using the same helper
 
-export async function GET(request: NextRequest) { // Changed from PUT to GET, as this is a read operation
+export async function GET() { // Changed from PUT to GET, as this is a read operation
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
