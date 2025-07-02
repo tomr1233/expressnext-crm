@@ -2,15 +2,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient } from '@/lib/google-drive';
 import { supabase } from '@/lib/supabase';
-import * as S3Client from "@aws-sdk/client-s3";
-console.log(S3Client);
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { drive_v3 } from 'googleapis';
-import { getValidTokens } from '@/lib/google-auth-helpers'; // Helper
+import { getValidTokens } from '@/lib/google-auth-helpers';
 
 // Helper function to download file from Google Drive
-async function downloadFileFromDrive(drive: drive_v3.Drive, fileId: string, mimeType: string) { // <-- FIX: Changed 'any' to 'drive_v3.Drive'
+async function downloadFileFromDrive(drive: drive_v3.Drive, fileId: string, mimeType: string) {
   try {
     // For Google Docs/Sheets/Slides, export as PDF
     const exportMimeTypes: Record<string, string> = {

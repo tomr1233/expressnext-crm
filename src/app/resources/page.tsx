@@ -1,11 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ResourcesGrid } from "@/components/resources/resources-grid";
 import { ResourcesHeader } from "@/components/resources/resources-header";
+import { Loader2 } from "lucide-react";
 
-export default function ResourcesPage() {
+// Loading component for Suspense
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+    </div>
+  );
+}
+
+// Separate component that uses useSearchParams
+function ResourcesContent() {
   const [refreshKey, setRefreshKey] = useState(0);
   const searchParams = useSearchParams();
 
@@ -33,5 +44,14 @@ export default function ResourcesPage() {
       <ResourcesHeader onResourcesUpdate={handleResourcesUpdate} />
       <ResourcesGrid key={refreshKey} />
     </div>
+  );
+}
+
+// Main page component with Suspense wrapper
+export default function ResourcesPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ResourcesContent />
+    </Suspense>
   );
 }
