@@ -1,10 +1,9 @@
 import type { NextConfig } from "next";
-module.exports = {
+
+const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-};
-const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {

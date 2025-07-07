@@ -1,11 +1,22 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileText, Download, Eye, Video, Image, File, Loader2, Trash2, Maximize2 } from "lucide-react";
+import { 
+  FileText, 
+  Download, 
+  Eye, 
+  Video, 
+  Image, 
+  File, 
+  Loader2, 
+  Trash2, 
+  Maximize2,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +35,12 @@ interface Resource {
   uploaded_by: string;
   created_at?: string;
   download_url?: string;
+  // Add the new sync-related fields
+  google_drive_id?: string;
+  sync_status?: 'synced' | 'pending' | 'error' | 'deleted';
+  last_synced_at?: string;
+  google_modified_time?: string;
+  version?: number;
 }
 
 const getFileIcon = (type: string) => {
@@ -332,7 +349,30 @@ export function ResourcesGrid() {
                     {resource.category}
                   </Badge>
                 </div>
+                
+                {/* Sync Status Indicators */}
+                {resource.sync_status === 'pending' && (
+                  <div className="flex items-center text-yellow-600 dark:text-yellow-400 text-xs mt-2">
+                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                    Syncing...
+                  </div>
+                )}
+
+                {resource.sync_status === 'error' && (
+                  <div className="flex items-center text-red-600 dark:text-red-400 text-xs mt-2">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Sync error
+                  </div>
+                )}
+
+                {resource.google_drive_id && resource.sync_status === 'synced' && resource.last_synced_at && (
+                  <div className="flex items-center text-green-600 dark:text-green-400 text-xs mt-2">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Synced {formatDistanceToNow(new Date(resource.last_synced_at), { addSuffix: true })}
+                  </div>
+                )}
               </CardHeader>
+              
               <CardContent>
                 <div className="space-y-4">
                   {/* Thumbnail preview */}

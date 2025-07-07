@@ -76,3 +76,33 @@ export function formatBytes(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
+
+// Helper function to download file from Google Drive
+export async function downloadFileFromDrive(drive: any, fileId: string, mimeType: string) {
+  try {
+    // For Google Docs/Sheets/Slides, export as PDF
+    const exportMimeTypes: Record<string, string> = {
+      'application/vnd.google-apps.document': 'application/pdf',
+      'application/vnd.google-apps.spreadsheet': 'application/pdf',
+      'application/vnd.google-apps.presentation': 'application/pdf',
+    };
+
+    if (exportMimeTypes[mimeType]) {
+      const response = await drive.files.export({
+        fileId: fileId,
+        mimeType: exportMimeTypes[mimeType]
+      }, { responseType: 'arraybuffer' });
+      return Buffer.from(response.data as ArrayBuffer);
+    } else {
+      // For regular files, download directly
+      const response = await drive.files.get({
+        fileId: fileId,
+        alt: 'media'
+      }, { responseType: 'arraybuffer' });
+      return Buffer.from(response.data as ArrayBuffer);
+    }
+  } catch (error) {
+    console.error('Error downloading file from Drive:', error);
+    throw error;
+  }
+}
