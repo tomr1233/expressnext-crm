@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Filter, Cloud } from "lucide-react";
+import { Plus, Search, Filter, Cloud, RefreshCw } from "lucide-react";
 import { UploadModal } from "./upload-modal";
 import { GoogleDriveSyncModal } from "./google-drive-sync-modal";
 
@@ -13,11 +13,41 @@ interface ResourcesHeaderProps {
 export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [syncModalOpen, setSyncModalOpen] = useState(false);
+  const [resyncing, setResyncing] = useState(false);
 
   const handleUploadComplete = () => {
     // Trigger a refresh of the resources list
     if (onResourcesUpdate) {
       onResourcesUpdate();
+    }
+  };
+
+  const handleReSync = async () => {
+    setResyncing(true);
+    try {
+      const response = await fetch('/api/google/sync/re-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        throw new Error('Re-sync failed');
+      }
+
+      const result = await response.json();
+      
+      // Show success message
+      alert(result.message || `Re-sync completed: ${result.updatedCount} updated, ${result.syncedCount} checked`);
+      
+      // Refresh the resources list
+      if (onResourcesUpdate) {
+        onResourcesUpdate();
+      }
+    } catch (error) {
+      console.error('Re-sync error:', error);
+      alert('Failed to re-sync Google Drive files. Please try again.');
+    } finally {
+      setResyncing(false);
     }
   };
 
@@ -37,6 +67,15 @@ export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
             <Button variant="outline" size="sm" onClick={() => setSyncModalOpen(true)}>
               <Cloud className="h-4 w-4 mr-2" />
               Google Drive Sync
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleReSync}
+              disabled={resyncing}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${resyncing ? 'animate-spin' : ''}`} />
+              {resyncing ? 'Re-syncing...' : 'Re-sync Drive'}
             </Button>
             <Button size="sm" onClick={() => setUploadModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
