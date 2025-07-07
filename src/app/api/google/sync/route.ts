@@ -1,42 +1,11 @@
 // src/app/api/google/sync/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getDriveClient } from '@/lib/google-drive';
+import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
 import { supabase } from '@/lib/supabase';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
-import { drive_v3 } from 'googleapis';
 import { getValidTokens } from '@/lib/google-auth-helpers';
-
-// Helper function to download file from Google Drive
-async function downloadFileFromDrive(drive: drive_v3.Drive, fileId: string, mimeType: string) {
-  try {
-    // For Google Docs/Sheets/Slides, export as PDF
-    const exportMimeTypes: Record<string, string> = {
-      'application/vnd.google-apps.document': 'application/pdf',
-      'application/vnd.google-apps.spreadsheet': 'application/pdf',
-      'application/vnd.google-apps.presentation': 'application/pdf',
-    };
-
-    if (exportMimeTypes[mimeType]) {
-      const response = await drive.files.export({
-        fileId: fileId,
-        mimeType: exportMimeTypes[mimeType]
-      }, { responseType: 'arraybuffer' });
-      return Buffer.from(response.data as ArrayBuffer);
-    } else {
-      // For regular files, download directly
-      const response = await drive.files.get({
-        fileId: fileId,
-        alt: 'media'
-      }, { responseType: 'arraybuffer' });
-      return Buffer.from(response.data as ArrayBuffer);
-    }
-  } catch (error) {
-    console.error('Error downloading file from Drive:', error);
-    throw error;
-  }
-}
 
 // Sync files from Google Drive to S3
 export async function POST(request: NextRequest) {
@@ -121,6 +90,11 @@ export async function POST(request: NextRequest) {
             tags,
             upload_date: new Date().toISOString(),
             uploaded_by: 'google-drive-sync',
+            google_drive_id: file.id,
+            google_modified_time: file.modifiedTime,
+            last_synced_at: new Date().toISOString(),
+            sync_status: 'synced',
+            version: 1,
           })
           .select()
           .single();

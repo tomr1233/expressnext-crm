@@ -1,6 +1,7 @@
 // src/app/api/google/callback/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getTokensFromCode } from '@/lib/google-drive';
+import { supabase } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
@@ -42,6 +43,32 @@ export async function GET(request: NextRequest) {
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 30 // 30 days
       });
+    }
+
+    // Store tokens in database for server-side operations (cron jobs)
+    try {
+      // First, deactivate any existing tokens
+      await supabase
+        .from('google_tokens')
+        .update({ is_active: false })
+        .eq('is_active', true);
+      
+      // Insert new tokens
+      await supabase
+        .from('google_tokens')
+        .insert({
+          access_token: tokens.access_token!,
+          refresh_token: tokens.refresh_token || '',
+          token_type: 'Bearer',
+          expires_at: new Date(Date.now() + 3600 * 1000).toISOString(), // 1 hour from now
+          scope: tokens.scope || 'https://www.googleapis.com/auth/drive.readonly',
+          is_active: true
+        });
+      
+      console.log('Successfully stored Google tokens in database for cron jobs');
+    } catch (dbError) {
+      console.error('Error storing tokens in database:', dbError);
+      // Don't fail the whole process if token storage fails
     }
 
     return NextResponse.redirect(

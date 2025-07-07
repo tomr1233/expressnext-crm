@@ -75,4 +75,9 @@ export interface Resource {
   uploaded_by: string
   created_at?: string
   download_url?: string // Added for frontend use
+  google_drive_id?: string // Google Drive file ID
+  google_modified_time?: string // Last modified time in Google Drive
+  last_synced_at?: string // Last sync timestamp
+  sync_status?: 'synced' | 'pending' | 'deleted' | 'error'
+  version?: number // Version number for tracking updates
 }
