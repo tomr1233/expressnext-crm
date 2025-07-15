@@ -4,7 +4,7 @@ import { getDriveClient } from '@/lib/google-drive';
 import { getValidTokens } from '@/lib/google-auth-helpers';
 import { v4 as uuidv4 } from 'uuid';
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const expiration = Date.now() + 24 * 60 * 60 * 1000; // 24 hours from now
 
     // Register webhook for changes
-    const response = await drive.files.watch({
+    await drive.files.watch({
       requestBody: {
         id: channelId,
         type: 'web_hook',
@@ -27,13 +27,38 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Store the channel information in your database
-    // You'll need to create a table to track active webhooks
+    // Store the webhook information as a resource entry for tracking
+    const { error: dbError } = await supabase
+      .from('resources')
+      .upsert({
+        name: 'google-drive-webhook',
+        type: 'other',
+        category: 'system',
+        department: 'system',
+        description: `Google Drive webhook channel: ${channelId}`,
+        s3_key: `webhooks/${channelId}`,
+        file_url: `webhook://${channelId}`,
+        size: '0',
+        tags: ['webhook', 'google-drive'],
+        upload_date: new Date().toISOString(),
+        uploaded_by: 'system',
+        sync_status: 'synced',
+        last_synced_at: new Date().toISOString(),
+        google_drive_id: channelId, // Store channel ID here
+        google_modified_time: new Date(expiration).toISOString(), // Store expiration
+        version: 1
+      });
+
+    if (dbError) {
+      console.error('Error storing webhook info:', dbError);
+      // Don't fail the registration, just log the error
+    }
     
     return NextResponse.json({
       success: true,
       channelId,
-      expiration: new Date(expiration).toISOString()
+      expiration: new Date(expiration).toISOString(),
+      message: 'Webhook registered successfully. Files will now sync automatically when changed.'
     });
   } catch (error) {
     console.error('Error registering webhook:', error);

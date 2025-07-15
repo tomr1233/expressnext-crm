@@ -140,18 +140,91 @@ function ResourceThumbnail({ resource, onClick }: { resource: Resource; onClick:
     );
   }
 
-  // Default thumbnail for other file types
-  return (
-    <div 
-      className="relative h-32 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer group"
-      onClick={onClick}
-    >
-      <div className="w-full h-full flex flex-col items-center justify-center p-4">
-        <FileIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" />
-        <div className="text-xs text-gray-500 dark:text-gray-400 text-center truncate max-w-full">
-          {resource.name.split('.').pop()?.toUpperCase() || 'FILE'}
+  // Default thumbnail for other file types with better document type recognition
+  const getDocumentThumbnail = () => {
+    const extension = resource.name.split('.').pop()?.toLowerCase();
+    const fileName = resource.name.split('.').slice(0, -1).join('.');
+    
+    // Color coding for different document types
+    const getTypeColor = (ext: string) => {
+      switch (ext) {
+        case 'pdf': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+        case 'doc':
+        case 'docx': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+        case 'xls':
+        case 'xlsx': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+        case 'ppt':
+        case 'pptx': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
+        case 'txt': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+        case 'json': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+        default: return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
+      }
+    };
+
+    return (
+      <div 
+        className="relative h-32 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer group"
+        onClick={onClick}
+      >
+        <div className="w-full h-full flex flex-col items-center justify-center p-4">
+          <FileIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" />
+          <div className={cn(
+            "text-xs font-medium px-2 py-1 rounded text-center truncate max-w-full",
+            getTypeColor(extension || '')
+          )}>
+            {extension?.toUpperCase() || 'FILE'}
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 text-center truncate max-w-full mt-1">
+            {fileName.length > 20 ? fileName.substring(0, 17) + '...' : fileName}
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity flex items-center justify-center">
+          <Eye className="h-6 w-6 text-gray-600 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       </div>
+    );
+  };
+
+  return getDocumentThumbnail();
+}
+
+// Component to preview text-based files
+function TextFilePreview({ fileUrl, onLoad, onError }: { fileUrl: string; onLoad: () => void; onError: () => void }) {
+  const [content, setContent] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error('Failed to fetch file');
+        const text = await response.text();
+        setContent(text);
+        onLoad();
+      } catch (error) {
+        console.error('Error fetching text file:', error);
+        onError();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, [fileUrl, onLoad, onError]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[70vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 h-[70vh] overflow-auto">
+      <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-mono">
+        {content}
+      </pre>
     </div>
   );
 }
@@ -196,15 +269,42 @@ function FilePreview({ resource }: { resource: Resource; onClose: () => void }) 
       );
     }
 
-    if (resource.type === 'document' && resource.file_url.toLowerCase().endsWith('.pdf')) {
-      return (
-        <iframe
-          src={resource.file_url}
-          className="w-full h-[70vh] rounded-lg border-0"
-          onLoad={() => setLoading(false)}
-          onError={() => setError(true)}
-        />
-      );
+    if (resource.type === 'document') {
+      const fileUrl = resource.file_url.toLowerCase();
+      
+      // PDF files - direct iframe
+      if (fileUrl.endsWith('.pdf')) {
+        return (
+          <iframe
+            src={resource.file_url}
+            className="w-full h-[70vh] rounded-lg border-0"
+            onLoad={() => setLoading(false)}
+            onError={() => setError(true)}
+          />
+        );
+      }
+      
+      // Office documents - use Microsoft Office Online viewer
+      if (fileUrl.endsWith('.docx') || fileUrl.endsWith('.doc') || 
+          fileUrl.endsWith('.xlsx') || fileUrl.endsWith('.xls') || 
+          fileUrl.endsWith('.pptx') || fileUrl.endsWith('.ppt')) {
+        const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resource.file_url)}`;
+        return (
+          <iframe
+            src={viewerUrl}
+            className="w-full h-[70vh] rounded-lg border-0"
+            onLoad={() => setLoading(false)}
+            onError={() => setError(true)}
+          />
+        );
+      }
+      
+      // Text files - fetch and display content
+      if (fileUrl.endsWith('.txt') || fileUrl.endsWith('.md') || 
+          fileUrl.endsWith('.json') || fileUrl.endsWith('.csv') ||
+          fileUrl.endsWith('.xml') || fileUrl.endsWith('.html')) {
+        return <TextFilePreview fileUrl={resource.file_url} onLoad={() => setLoading(false)} onError={() => setError(true)} />;
+      }
     }
 
     // For other document types, show a preview with option to open externally

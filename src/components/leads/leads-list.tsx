@@ -1,45 +1,56 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Eye } from "lucide-react";
-
-const leads = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    company: "TechStart Inc",
-    source: "LinkedIn",
-    bioMatch: 85,
-    followers: 1250,
-    website: "https://techstart.com",
-    status: "qualified",
-    tags: ["AI", "SaaS"],
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    company: "Digital Solutions",
-    source: "Twitter",
-    bioMatch: 72,
-    followers: 890,
-    website: "https://digitalsol.com",
-    status: "unqualified",
-    tags: ["Marketing", "Automation"],
-  },
-  {
-    id: 3,
-    name: "Emily Rodriguez",
-    company: "Growth Labs",
-    source: "Cold Email",
-    bioMatch: 91,
-    followers: 2100,
-    website: "https://growthlabs.io",
-    status: "new",
-    tags: ["Growth", "AI", "B2B"],
-  },
-];
+import { useState, useEffect } from "react";
+import { Lead } from "@/lib/dynamodb";
 
 export function LeadsList() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchLeads = async () => {
+      try {
+        const response = await fetch('/api/leads');
+        if (!response.ok) {
+          throw new Error('Failed to fetch leads');
+        }
+        const data = await response.json();
+        setLeads(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeads();
+  }, []);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">Loading leads...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-red-500">Error: {error}</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardContent className="p-0">
@@ -90,26 +101,26 @@ export function LeadsList() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="text-sm font-medium text-foreground">
-                        {lead.bioMatch}%
+                        {lead.bio_match}%
                       </div>
                       <div
                         className={`ml-2 h-2 w-16 rounded-full ${
-                          lead.bioMatch >= 80
+                          lead.bio_match >= 80
                             ? "bg-green-200 dark:bg-green-900"
-                            : lead.bioMatch >= 60
+                            : lead.bio_match >= 60
                             ? "bg-yellow-200 dark:bg-yellow-900"
                             : "bg-red-200 dark:bg-red-900"
                         }`}
                       >
                         <div
                           className={`h-2 rounded-full ${
-                            lead.bioMatch >= 80
+                            lead.bio_match >= 80
                               ? "bg-green-500 dark:bg-green-400"
-                              : lead.bioMatch >= 60
+                              : lead.bio_match >= 60
                               ? "bg-yellow-500 dark:bg-yellow-400"
                               : "bg-red-500 dark:bg-red-400"
                           }`}
-                          style={{ width: `${lead.bioMatch}%` }}
+                          style={{ width: `${lead.bio_match}%` }}
                         />
                       </div>
                     </div>

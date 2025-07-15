@@ -1,9 +1,9 @@
 // src/app/api/google/webhook/callback/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { supabase } from '@/lib/supabase';
+import { ResourceOperations } from '@/lib/dynamodb-operations';
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const headersList = await headers();
     
@@ -49,31 +49,50 @@ export async function POST(request: NextRequest) {
 async function handleFileUpdate(fileId: string | null) {
   if (!fileId) return;
 
-  // Mark the file as pending sync
-  const { error } = await supabase
-    .from('resources')
-    .update({ sync_status: 'pending' })
-    .eq('google_drive_id', fileId);
+  try {
+    // Find the resource by google_drive_id
+    const resource = await ResourceOperations.getResourceByGoogleDriveId(fileId);
+    
+    if (!resource) {
+      console.log('No resource found for Google Drive file:', fileId);
+      return;
+    }
 
-  if (error) {
-    console.error('Error marking file for sync:', error);
+    // Mark the file as pending sync
+    await ResourceOperations.updateResourceSyncStatus(resource.id, 'pending');
+
+    // Trigger background sync by making a request to the sync endpoint
+    const syncResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/google/sync/single`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fileId }),
+    });
+
+    if (!syncResponse.ok) {
+      console.error('Failed to trigger background sync for file:', fileId);
+    }
+  } catch (error) {
+    console.error('Error in handleFileUpdate:', error);
   }
-
-  // Trigger async sync process
-  // You can use a job queue here or process immediately
-  await syncSingleFile(fileId);
 }
 
 async function handleFileRemoval(fileId: string | null) {
   if (!fileId) return;
 
-  // Mark the resource as deleted or remove it
-  const { error } = await supabase
-    .from('resources')
-    .update({ sync_status: 'deleted' })
-    .eq('google_drive_id', fileId);
+  try {
+    // Find the resource by google_drive_id
+    const resource = await ResourceOperations.getResourceByGoogleDriveId(fileId);
+    
+    if (!resource) {
+      console.log('No resource found for Google Drive file:', fileId);
+      return;
+    }
 
-  if (error) {
+    // Mark the resource as deleted
+    await ResourceOperations.updateResourceSyncStatus(resource.id, 'deleted');
+  } catch (error) {
     console.error('Error marking file as deleted:', error);
   }
 }

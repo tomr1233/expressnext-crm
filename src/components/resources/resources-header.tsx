@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Filter, Cloud, RefreshCw } from "lucide-react";
+import { Plus, Search, Filter, Cloud, RefreshCw, Zap, ZapOff } from "lucide-react";
 import { UploadModal } from "./upload-modal";
 import { GoogleDriveSyncModal } from "./google-drive-sync-modal";
 
@@ -14,6 +14,54 @@ export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [resyncing, setResyncing] = useState(false);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(false);
+  const [registeringWebhook, setRegisteringWebhook] = useState(false);
+
+  // Check webhook status on component mount
+  useEffect(() => {
+    checkWebhookStatus();
+  }, []);
+
+  const checkWebhookStatus = async () => {
+    try {
+      const response = await fetch('/api/google/webhook/status');
+      if (response.ok) {
+        const data = await response.json();
+        setAutoSyncEnabled(data.active || false);
+      }
+    } catch (error) {
+      console.error('Error checking webhook status:', error);
+    }
+  };
+
+  const toggleAutoSync = async () => {
+    if (autoSyncEnabled) {
+      // Disable auto-sync (would need an endpoint to stop webhooks)
+      alert('Auto-sync disable functionality needs to be implemented');
+    } else {
+      // Enable auto-sync by registering webhook
+      setRegisteringWebhook(true);
+      try {
+        const response = await fetch('/api/google/webhook/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to register webhook');
+        }
+
+        await response.json();
+        setAutoSyncEnabled(true);
+        alert(`Auto-sync enabled! Files will now sync automatically when changed in Google Drive.`);
+      } catch (error) {
+        console.error('Webhook registration error:', error);
+        alert('Failed to enable auto-sync. Please try again.');
+      } finally {
+        setRegisteringWebhook(false);
+      }
+    }
+  };
 
   const handleUploadComplete = () => {
     // Trigger a refresh of the resources list
@@ -76,6 +124,21 @@ export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${resyncing ? 'animate-spin' : ''}`} />
               {resyncing ? 'Re-syncing...' : 'Re-sync Drive'}
+            </Button>
+            <Button 
+              variant={autoSyncEnabled ? "default" : "outline"}
+              size="sm" 
+              onClick={toggleAutoSync}
+              disabled={registeringWebhook}
+            >
+              {registeringWebhook ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : autoSyncEnabled ? (
+                <Zap className="h-4 w-4 mr-2" />
+              ) : (
+                <ZapOff className="h-4 w-4 mr-2" />
+              )}
+              {registeringWebhook ? 'Enabling...' : autoSyncEnabled ? 'Auto-sync ON' : 'Enable Auto-sync'}
             </Button>
             <Button size="sm" onClick={() => setUploadModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />

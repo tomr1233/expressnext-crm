@@ -1,7 +1,7 @@
 // src/app/api/google/sync/enhanced/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
-import { supabase } from '@/lib/supabase';
+import { ResourceOperations } from '@/lib/dynamodb-operations';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
@@ -26,11 +26,7 @@ export async function POST(request: NextRequest) {
     for (const file of files) {
       try {
         // Check if file already exists
-        const { data: existingResource } = await supabase
-          .from('resources')
-          .select('*')
-          .eq('google_drive_id', file.id)
-          .single();
+        const existingResource = await ResourceOperations.getResourceByGoogleDriveId(file.id);
 
         if (existingResource) {
           // Check if file has been modified
@@ -80,17 +76,14 @@ async function updateExistingResource(file: any, existingResource: any, drive: a
   await s3Client.send(putCommand);
   
   // Update database record
-  await supabase
-    .from('resources')
-    .update({
-      name: file.name,
-      size: file.size ? file.size.toString() : existingResource.size,
-      google_modified_time: file.modifiedTime,
-      last_synced_at: new Date().toISOString(),
-      sync_status: 'synced',
-      version: (existingResource.version || 0) + 1,
-    })
-    .eq('id', existingResource.id);
+  await ResourceOperations.updateResource(existingResource.id, {
+    name: file.name,
+    size: file.size ? parseInt(file.size) : existingResource.size,
+    google_modified_time: file.modifiedTime,
+    last_synced_at: new Date().toISOString(),
+    sync_status: 'synced',
+    version: (existingResource.version || 0) + 1,
+  });
 }
 
 async function createNewResource(file: any, category: string, department: string, tags: string[], drive: any) {
@@ -122,26 +115,24 @@ async function createNewResource(file: any, category: string, department: string
   const publicUrl = `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
   
   // Insert into database
-  await supabase
-    .from('resources')
-    .insert({
-      name: file.name,
-      type: getFileTypeFromMimeType(file.mimeType),
-      category,
-      department,
-      description: `Synced from Google Drive`,
-      s3_key: s3Key,
-      file_url: publicUrl,
-      size: file.size ? file.size.toString() : '0',
-      tags,
-      upload_date: new Date().toISOString(),
-      uploaded_by: 'google-drive-sync',
-      google_drive_id: file.id,
-      google_modified_time: file.modifiedTime,
-      last_synced_at: new Date().toISOString(),
-      sync_status: 'synced',
-      version: 1,
-    });
+  await ResourceOperations.createResource({
+    name: file.name,
+    type: getFileTypeFromMimeType(file.mimeType),
+    category,
+    department,
+    description: `Synced from Google Drive`,
+    s3_key: s3Key,
+    file_url: publicUrl,
+    size: file.size ? parseInt(file.size) : 0,
+    tags,
+    upload_date: new Date().toISOString(),
+    uploaded_by: 'google-drive-sync',
+    google_drive_id: file.id,
+    google_modified_time: file.modifiedTime,
+    last_synced_at: new Date().toISOString(),
+    sync_status: 'synced',
+    version: 1,
+  });
 }
 
 function getFileTypeFromMimeType(mimeType: string): 'document' | 'video' | 'image' | 'other' {

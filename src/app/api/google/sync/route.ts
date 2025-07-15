@@ -1,7 +1,7 @@
 // src/app/api/google/sync/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
-import { supabase } from '@/lib/supabase';
+import { ResourceOperations } from '@/lib/dynamodb-operations';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
@@ -76,33 +76,31 @@ export async function POST(request: NextRequest) {
         
         console.log(`File uploaded, saving metadata to database`);
         
-        const { error: dbError } = await supabase
-          .from('resources')
-          .insert({
-            name: file.name,
-            type: file.type,
-            category,
-            department,
-            description: `Synced from Google Drive`,
-            s3_key: s3Key,
-            file_url: publicUrl,
-            size: file.size,
-            tags,
-            upload_date: new Date().toISOString(),
-            uploaded_by: 'google-drive-sync',
-            google_drive_id: file.id,
-            google_modified_time: file.modifiedTime,
-            last_synced_at: new Date().toISOString(),
-            sync_status: 'synced',
-            version: 1,
-          })
-          .select()
-          .single();
-        
-        if (dbError) {
-          console.error(`Database error for file ${file.name}:`, dbError);
-          throw new Error(`Database error: ${dbError.message}`);
-        }
+        // Determine file type based on mimeType
+        const fileType = file.mimeType?.startsWith('video/') ? 'video' :
+                        file.mimeType?.startsWith('image/') ? 'image' :
+                        file.mimeType?.includes('document') || file.mimeType?.includes('text') || 
+                        file.mimeType?.includes('pdf') || file.mimeType?.includes('sheet') || 
+                        file.mimeType?.includes('presentation') || file.mimeType?.includes('google-apps') ? 'document' : 'other';
+
+        await ResourceOperations.createResource({
+          name: file.name,
+          type: fileType,
+          category,
+          department,
+          description: `Synced from Google Drive`,
+          s3_key: s3Key,
+          file_url: publicUrl,
+          size: file.size ? parseInt(file.size) : 0,
+          tags,
+          upload_date: new Date().toISOString(),
+          uploaded_by: 'google-drive-sync',
+          google_drive_id: file.id,
+          google_modified_time: file.modifiedTime,
+          last_synced_at: new Date().toISOString(),
+          sync_status: 'synced',
+          version: 1,
+        });
         
         console.log(`Successfully synced: ${file.name}`);
         syncedCount++;

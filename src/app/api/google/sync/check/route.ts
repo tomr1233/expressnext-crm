@@ -1,7 +1,7 @@
 // src/app/api/google/sync/check/route.ts
 import { NextResponse } from 'next/server';
 import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
-import { supabase } from '@/lib/supabase';
+import { ResourceOperations } from '@/lib/dynamodb-operations';
 import { getStoredTokens } from '@/lib/google-auth-helpers';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
@@ -18,10 +18,8 @@ export async function GET() {
     const drive = getDriveClient(tokens.accessToken, tokens.refreshToken);
     
     // Get all resources with Google Drive IDs
-    const { data: resources } = await supabase
-      .from('resources')
-      .select('*')
-      .not('google_drive_id', 'is', null);
+    const allResources = await ResourceOperations.getAllResources();
+    const resources = allResources.filter(resource => resource.google_drive_id != null);
 
     let updatedCount = 0;
     let checkedCount = 0;
@@ -40,10 +38,7 @@ export async function GET() {
         
         if (file.trashed) {
           // File was trashed
-          await supabase
-            .from('resources')
-            .update({ sync_status: 'deleted' })
-            .eq('id', resource.id);
+          await ResourceOperations.updateResourceSyncStatus(resource.id, 'deleted');
           
           console.log(`Marked resource ${resource.name} as deleted`);
         } else if (new Date(file.modifiedTime!) > new Date(resource.last_synced_at || '1970-01-01')) {
@@ -55,16 +50,10 @@ export async function GET() {
         console.error(`Error checking file ${resource.name}:`, error);
         if (error.code === 404) {
           // File not found, mark as deleted
-          await supabase
-            .from('resources')
-            .update({ sync_status: 'deleted' })
-            .eq('id', resource.id);
+          await ResourceOperations.updateResourceSyncStatus(resource.id, 'deleted');
         } else {
           // Mark as error for retry
-          await supabase
-            .from('resources')
-            .update({ sync_status: 'error' })
-            .eq('id', resource.id);
+          await ResourceOperations.updateResourceSyncStatus(resource.id, 'error');
         }
       }
     }
@@ -99,26 +88,20 @@ async function syncUpdatedFile(resource: any, file: any, drive: any) {
     await s3Client.send(putCommand);
     
     // Update database record
-    await supabase
-      .from('resources')
-      .update({
-        name: file.name,
-        size: file.size ? file.size.toString() : resource.size,
-        google_modified_time: file.modifiedTime,
-        last_synced_at: new Date().toISOString(),
-        sync_status: 'synced',
-        version: (resource.version || 0) + 1,
-      })
-      .eq('id', resource.id);
+    await ResourceOperations.updateResource(resource.id, {
+      name: file.name,
+      size: file.size ? parseInt(file.size) : resource.size,
+      google_modified_time: file.modifiedTime,
+      last_synced_at: new Date().toISOString(),
+      sync_status: 'synced',
+      version: (resource.version || 0) + 1,
+    });
     
     console.log(`Successfully synced: ${file.name}`);
   } catch (error) {
     console.error(`Error syncing file ${file.name}:`, error);
     
     // Mark as error
-    await supabase
-      .from('resources')
-      .update({ sync_status: 'error' })
-      .eq('id', resource.id);
+    await ResourceOperations.updateResourceSyncStatus(resource.id, 'error');
   }
 }

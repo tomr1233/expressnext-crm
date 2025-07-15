@@ -1,6 +1,6 @@
 // src/app/api/resources/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { ResourceOperations } from "@/lib/dynamodb-operations";
 import { GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
@@ -8,14 +8,7 @@ import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
 // GET all resources
 export async function GET() {
   try {
-    const { data: resources, error } = await supabase
-      .from("resources")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      throw error;
-    }
+    const resources = await ResourceOperations.getAllResources();
 
     // Generate signed URLs for each resource
     const resourcesWithUrls = await Promise.all(
@@ -62,29 +55,21 @@ export async function POST(request: NextRequest) {
       tags,
     } = body;
 
-    const { data, error } = await supabase
-      .from("resources")
-      .insert({
-        name,
-        type,
-        category,
-        department,
-        description,
-        s3_key,
-        file_url,
-        size,
-        tags,
-        upload_date: new Date().toISOString(),
-        uploaded_by: "current-user", // You'll want to get this from your auth system
-      })
-      .select()
-      .single();
+    const resource = await ResourceOperations.createResource({
+      name,
+      type,
+      category,
+      department,
+      description,
+      s3_key,
+      file_url,
+      size,
+      tags,
+      upload_date: new Date().toISOString(),
+      uploaded_by: "current-user", // You'll want to get this from your auth system
+    });
 
-    if (error) {
-      throw error;
-    }
-
-    return NextResponse.json(data);
+    return NextResponse.json(resource);
   } catch (error) {
     console.error("Error creating resource:", error);
     return NextResponse.json(
@@ -108,15 +93,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // First, get the resource to find the S3 key
-    const { data: resource, error: fetchError } = await supabase
-      .from("resources")
-      .select("s3_key")
-      .eq("id", id)
-      .single();
-
-    if (fetchError) {
-      throw fetchError;
-    }
+    const resource = await ResourceOperations.getResource(id);
 
     if (!resource || !resource.s3_key) {
       return NextResponse.json(
@@ -141,14 +118,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from database
-    const { error: deleteError } = await supabase
-      .from("resources")
-      .delete()
-      .eq("id", id);
-
-    if (deleteError) {
-      throw deleteError;
-    }
+    await ResourceOperations.deleteResource(id);
 
     return NextResponse.json({ 
       success: true,
