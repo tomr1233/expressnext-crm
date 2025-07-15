@@ -48,7 +48,7 @@ export function Sidebar() {
         {!collapsed && (
           <div className="flex items-center gap-2">
             <Image
-              src="https://imagesexpresstxt.s3.ap-southeast-2.amazonaws.com/c56cfb28-35b3-4c0b-8055-e3f434f4d644.png"
+              src="/logo.png"
               alt="ExpressNext Logo"
               width={32}
               height={32}
