@@ -36,12 +36,30 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
+    - name: Test SSH Connection
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        timeout: 60s
+        debug: true
+        script: |
+          echo "SSH connection successful!"
+          whoami
+          pwd
+        
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        timeout: 300s
+        command_timeout: 120s
+        debug: true
         script: |
           # Pull latest image
           docker pull ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest
