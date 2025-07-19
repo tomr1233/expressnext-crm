@@ -36,6 +36,21 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
+    - name: Get GitHub Actions IP and Allow SSH Access
+      id: ip
+      run: |
+        IP=$(curl -s https://checkip.amazonaws.com/)
+        echo "runner_ip=$IP" >> $GITHUB_OUTPUT
+        echo "Runner IP: $IP"
+        
+        # Temporarily allow SSH from this IP (requires AWS CLI and credentials)
+        # aws ec2 authorize-security-group-ingress \
+        #   --group-id ${{ secrets.EC2_SECURITY_GROUP_ID }} \
+        #   --protocol tcp \
+        #   --port 22 \
+        #   --cidr $IP/32 \
+        #   --region ${{ secrets.AWS_REGION }}
+    
     - name: Test SSH Connection
       uses: appleboy/ssh-action@v1.0.3
       with:
