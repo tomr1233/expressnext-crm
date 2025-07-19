@@ -36,64 +36,89 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
-    - name: Get GitHub Actions IP and Allow SSH Access
-      id: ip
-      run: |
-        IP=$(curl -s https://checkip.amazonaws.com/)
-        echo "runner_ip=$IP" >> $GITHUB_OUTPUT
-        echo "Runner IP: $IP"
-        
-        # Test basic connectivity first
-        echo "Testing connectivity to EC2 instance..."
-        timeout 10 bash -c "</dev/tcp/${{ secrets.EC2_HOST }}/22" && echo "Port 22 is reachable" || echo "Port 22 is NOT reachable"
-        
-        # Temporarily allow SSH from this IP (requires AWS CLI and credentials)
-        # aws ec2 authorize-security-group-ingress \
-        #   --group-id ${{ secrets.EC2_SECURITY_GROUP_ID }} \
-        #   --protocol tcp \
-        #   --port 22 \
-        #   --cidr $IP/32 \
-        #   --region ${{ secrets.AWS_REGION }}
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
     
-    - name: Test SSH Connection
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: 22
-        timeout: 60s
-        debug: true
-        script: |
-          echo "SSH connection successful!"
-          whoami
-          pwd
+    - name: Deploy to EC2 via SSM
+      run: |
+        # Create deployment script
+        cat > deploy-script.sh << 'EOF'
+        #!/bin/bash
+        set -e
         
-    - name: Deploy to EC2
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: 22
-        timeout: 300s
-        command_timeout: 120s
-        debug: true
-        script: |
-          # Pull latest image
-          docker pull ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest
-          
-          # Stop and remove existing container (if running)
-          docker stop expressnext-crm || true
-          docker rm expressnext-crm || true
-          
-          # Run new container
-          docker run -d \
-            --name expressnext-crm \
-            -p 3001:3001 \
-            --env-file /home/${{ secrets.EC2_USER }}/.env \
-            --restart unless-stopped \
-            ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest
-          
-          # Clean up old images
-          docker image prune -f
+        echo "Starting deployment..."
+        
+        # Pull latest image
+        docker pull ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest
+        
+        # Stop and remove existing container (if running)
+        docker stop expressnext-crm || true
+        docker rm expressnext-crm || true
+        
+        # Run new container
+        docker run -d \
+          --name expressnext-crm \
+          -p 3001:3001 \
+          --env-file /home/${{ secrets.EC2_USER }}/.env \
+          --restart unless-stopped \
+          ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest
+        
+        # Clean up old images
+        docker image prune -f
+        
+        echo "Deployment completed successfully!"
+        EOF
+        
+        # Send and execute script via SSM
+        aws ssm send-command \
+          --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+          --document-name "AWS-RunShellScript" \
+          --parameters 'commands=["$(cat deploy-script.sh)"]' \
+          --timeout-seconds 300 \
+          --region ${{ secrets.AWS_REGION }} \
+          --output text \
+          --query 'Command.CommandId' > command-id.txt
+        
+        # Wait for command to complete and get output
+        COMMAND_ID=$(cat command-id.txt)
+        echo "SSM Command ID: $COMMAND_ID"
+        
+        # Wait for completion
+        aws ssm wait command-executed \
+          --command-id $COMMAND_ID \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+          --region ${{ secrets.AWS_REGION }}
+        
+        # Get command output
+        aws ssm get-command-invocation \
+          --command-id $COMMAND_ID \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+          --region ${{ secrets.AWS_REGION }} \
+          --query 'StandardOutputContent' \
+          --output text
+        
+        # Check if command succeeded
+        STATUS=$(aws ssm get-command-invocation \
+          --command-id $COMMAND_ID \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+          --region ${{ secrets.AWS_REGION }} \
+          --query 'Status' \
+          --output text)
+        
+        if [ "$STATUS" != "Success" ]; then
+          echo "Deployment failed with status: $STATUS"
+          # Get error output
+          aws ssm get-command-invocation \
+            --command-id $COMMAND_ID \
+            --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'StandardErrorContent' \
+            --output text
+          exit 1
+        fi
+        
+        echo "Deployment completed successfully!"
