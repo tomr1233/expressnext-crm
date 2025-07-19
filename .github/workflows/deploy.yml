@@ -58,39 +58,21 @@ jobs:
     
     - name: Deploy to EC2 via SSM
       run: |
-        # Create deployment script
-        cat > deploy-script.sh << 'EOF'
-        #!/bin/bash
-        set -e
-        
-        echo "Starting deployment..."
-        
-        # Pull latest image
-        docker pull ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest
-        
-        # Stop and remove existing container (if running)
-        docker stop expressnext-crm || true
-        docker rm expressnext-crm || true
-        
-        # Run new container
-        docker run -d \
-          --name expressnext-crm \
-          -p 3001:3001 \
-          --env-file /home/${{ secrets.EC2_USER }}/.env \
-          --restart unless-stopped \
-          ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest
-        
-        # Clean up old images
-        docker image prune -f
-        
-        echo "Deployment completed successfully!"
-        EOF
-        
         # Send and execute script via SSM
         aws ssm send-command \
           --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
           --document-name "AWS-RunShellScript" \
-          --parameters 'commands=["$(cat deploy-script.sh)"]' \
+          --parameters 'commands=[
+            "#!/bin/bash",
+            "set -e",
+            "echo \"Starting deployment...\"",
+            "docker pull ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest",
+            "docker stop expressnext-crm || true",
+            "docker rm expressnext-crm || true",
+            "docker run -d --name expressnext-crm -p 3001:3001 --env-file /home/${{ secrets.EC2_USER }}/.env --restart unless-stopped ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest",
+            "docker image prune -f",
+            "echo \"Deployment completed successfully!\""
+          ]' \
           --timeout-seconds 300 \
           --region ${{ secrets.AWS_REGION }} \
           --output text \
