@@ -43,6 +43,10 @@ jobs:
         echo "runner_ip=$IP" >> $GITHUB_OUTPUT
         echo "Runner IP: $IP"
         
+        # Test basic connectivity first
+        echo "Testing connectivity to EC2 instance..."
+        timeout 10 bash -c "</dev/tcp/${{ secrets.EC2_HOST }}/22" && echo "Port 22 is reachable" || echo "Port 22 is NOT reachable"
+        
         # Temporarily allow SSH from this IP (requires AWS CLI and credentials)
         # aws ec2 authorize-security-group-ingress \
         #   --group-id ${{ secrets.EC2_SECURITY_GROUP_ID }} \
