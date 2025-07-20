@@ -83,14 +83,14 @@ export function OnboardingList() {
                 <AvatarImage src={`/avatars/${client.assignedAvatar.toLowerCase()}.png`} />
                 <AvatarFallback className="text-xs">{client.assignedAvatar}</AvatarFallback>
               </Avatar>
-              <span className="text-sm text-gray-600">{client.assignedTo}</span>
+              <span className="text-sm text-gray-300 dark:text-white">{client.assignedTo}</span>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Progress</span>
+                  <span className="text-sm text-gray-300 dark:text-white">Progress</span>
                   <span className="text-sm font-medium">{client.progress}%</span>
                 </div>
                 <Progress value={client.progress} className="h-2" />

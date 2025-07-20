@@ -79,8 +79,8 @@ export function PipelineBoard({ pipelineId }: PipelineBoardProps) {
         return (
           <div key={stage.id} className="space-y-4">
             <div className={`p-4 rounded-lg border-2`} style={{ backgroundColor: stage.color + '20', borderColor: stage.color }}>
-              <h3 className="font-semibold text-gray-900">{stage.name}</h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <h3 className="font-semibold text-gray dark:text-white">{stage.name}</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 {stageDeals.length} deals • ${stageValue.toLocaleString()}
               </p>
             </div>
@@ -90,15 +90,15 @@ export function PipelineBoard({ pipelineId }: PipelineBoardProps) {
                 <Card key={deal.id} className="cursor-pointer hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-medium">{deal.title}</CardTitle>
-                    <p className="text-xs text-gray-500">{deal.company}</p>
+                    <p className="text-xs text-muted-foreground">{deal.company}</p>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center text-sm text-gray-600">
+                      <div className="flex items-center text-sm text-muted-foreground">
                         <DollarSign className="h-4 w-4 mr-1" />
                         ${deal.value.toLocaleString()}
                       </div>
-                      <div className="flex items-center text-xs text-gray-500">
+                      <div className="flex items-center text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3 mr-1" />
                         {new Date(deal.due_date).toLocaleDateString()}
                       </div>
