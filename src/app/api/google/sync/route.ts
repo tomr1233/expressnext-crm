@@ -6,6 +6,8 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { getValidTokens } from '@/lib/google-auth-helpers';
+import lodash from 'lodash';
+
 
 // Sync files from Google Drive to S3
 export async function POST(request: NextRequest) {
@@ -15,7 +17,6 @@ export async function POST(request: NextRequest) {
     if (!tokens || !tokens.accessToken) {
       return NextResponse.json(
         { error: 'Not authenticated with Google' },
-        { status: 401 }
       );
     }
 
@@ -25,7 +26,6 @@ export async function POST(request: NextRequest) {
     if (!files || files.length === 0) {
       return NextResponse.json(
         { error: 'No files selected' },
-        { status: 400 }
       );
     }
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         const publicUrl = `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
         
         console.log(`File uploaded, saving metadata to database`);
-        
+
         // Determine file type based on mimeType
         const fileType = file.mimeType?.startsWith('video/') ? 'video' :
                         file.mimeType?.startsWith('image/') ? 'image' :
@@ -83,12 +83,21 @@ export async function POST(request: NextRequest) {
                         file.mimeType?.includes('pdf') || file.mimeType?.includes('sheet') || 
                         file.mimeType?.includes('presentation') || file.mimeType?.includes('google-apps') ? 'document' : 'other';
 
+      const localDate = new Intl.DateTimeFormat(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+      }).format(new Date());
+
         await ResourceOperations.createResource({
           name: file.name,
           type: fileType,
           category,
           department,
-          description: `Synced from Google Drive`,
+          description: `Filetype: ${lodash.startCase(lodash.toLower(fileType))}, Created: ${localDate}, Size: ${file.size ? parseInt(file.size) : 0} kb`,
           s3_key: s3Key,
           file_url: publicUrl,
           size: file.size ? parseInt(file.size) : 0,

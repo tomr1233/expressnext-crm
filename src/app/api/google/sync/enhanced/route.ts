@@ -1,6 +1,6 @@
 // src/app/api/google/sync/enhanced/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
+import { getDriveClient, downloadFileFromDrive, formatBytes } from '@/lib/google-drive';
 import { ResourceOperations } from '@/lib/dynamodb-operations';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
@@ -114,13 +114,21 @@ async function createNewResource(file: any, category: string, department: string
   // Generate public URL
   const publicUrl = `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
   
+  // Create description from Google Drive metadata
+  const createdDate = file.createdTime ? new Date(file.createdTime).toLocaleDateString() : 'Unknown';
+  const modifiedDate = file.modifiedTime ? new Date(file.modifiedTime).toLocaleDateString() : 'Unknown';
+  const fileType = getFileTypeFromMimeType(file.mimeType);
+  const sizeStr = file.size ? formatBytes(parseInt(file.size)) : 'Unknown size';
+  
+  const description = `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} synced from Google Drive. Created: ${createdDate}, Modified: ${modifiedDate}, Size: ${sizeStr}`;
+
   // Insert into database
   await ResourceOperations.createResource({
     name: file.name,
     type: getFileTypeFromMimeType(file.mimeType),
     category,
     department,
-    description: `Synced from Google Drive`,
+    description,
     s3_key: s3Key,
     file_url: publicUrl,
     size: file.size ? parseInt(file.size) : 0,

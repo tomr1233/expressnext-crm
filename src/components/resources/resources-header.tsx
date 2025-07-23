@@ -105,7 +105,7 @@ export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Resources</h1>
-            <p className="text-gray-600 mt-2">Internal knowledge base and resource library</p>
+            <p className="text-muted-foreground mt-2">Internal knowledge base and resource library</p>
           </div>
           <div className="flex items-center space-x-3">
             <Button variant="outline" size="sm">
