@@ -52,6 +52,12 @@ export function Sidebar() {
               alt="ExpressNext Logo"
               width={32}
               height={32}
+              className="rounded-md object-contain"
+              priority
+              unoptimized
+              onError={(e) => {
+                console.error('Logo failed to load:', e);
+              }}
             />
             <h1 className="text-xl font-bold text-sidebar-foreground">ExpressNext</h1>
           </div>
