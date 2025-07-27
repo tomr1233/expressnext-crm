@@ -29,7 +29,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest
+        tags: tommy664/expressnext-crm:latest
         build-args: |
           NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -66,10 +66,10 @@ jobs:
             "#!/bin/bash",
             "set -e",
             "echo \"Starting deployment...\"",
-            "docker pull ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest",
+            "docker pull tommy664/expressnext-crm:latest",
             "docker stop expressnext-crm || true",
             "docker rm expressnext-crm || true",
-            "docker run -d --name expressnext-crm -p 3001:3001 --env-file /home/${{ secrets.EC2_USER }}/.env --restart unless-stopped ${{ secrets.DOCKER_USERNAME }}/expressnext-crm:latest",
+            "docker run -d --name expressnext-crm -p 3001:3001 --env-file /home/${{ secrets.EC2_USER }}/.env --restart unless-stopped tommy664/expressnext-crm:latest",
             "docker image prune -f",
             "echo \"Deployment completed successfully!\""
           ]' \
