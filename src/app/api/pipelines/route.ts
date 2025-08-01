@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PipelineOperations } from '@/lib/dynamodb-operations'
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-export async function GET() {
+async function getPipelines(request: NextRequest, user: AuthenticatedUser) {
   try {
     const pipelines = await PipelineOperations.getAllPipelines()
     return NextResponse.json(pipelines)
@@ -11,7 +12,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function createPipeline(request: NextRequest, user: AuthenticatedUser) {
   try {
     const pipelineData = await request.json()
     const pipeline = await PipelineOperations.createPipeline(pipelineData)
@@ -21,3 +22,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create pipeline' }, { status: 500 })
   }
 }
+
+export const GET = withAuth(getPipelines)
+export const POST = withAuth(createPipeline)

@@ -18,6 +18,7 @@ function LoadingFallback() {
 // Separate component that uses useSearchParams
 function ResourcesContent() {
   const [refreshKey, setRefreshKey] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -41,8 +42,12 @@ function ResourcesContent() {
 
   return (
     <div className="space-y-6">
-      <ResourcesHeader onResourcesUpdate={handleResourcesUpdate} />
-      <ResourcesGrid key={refreshKey} />
+      <ResourcesHeader 
+        onResourcesUpdate={handleResourcesUpdate}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+      <ResourcesGrid key={refreshKey} searchQuery={searchQuery} />
     </div>
   );
 }

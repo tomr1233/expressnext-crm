@@ -4,9 +4,10 @@ import { ResourceOperations } from "@/lib/dynamodb-operations";
 import { GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
 // GET all resources
-export async function GET() {
+async function getResources(request: NextRequest, user: AuthenticatedUser) {
   try {
     const resources = await ResourceOperations.getAllResources();
 
@@ -40,7 +41,7 @@ export async function GET() {
 }
 
 // POST new resource metadata
-export async function POST(request: NextRequest) {
+async function createResource(request: NextRequest, user: AuthenticatedUser) {
   try {
     const body = await request.json();
     const {
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
       size,
       tags,
       upload_date: new Date().toISOString(),
-      uploaded_by: "current-user", // You'll want to get this from your auth system
+      uploaded_by: user.username,
     });
 
     return NextResponse.json(resource);
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
 }
 
 // DELETE resource
-export async function DELETE(request: NextRequest) {
+async function deleteResource(request: NextRequest, user: AuthenticatedUser) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -132,3 +133,7 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
+export const GET = withAuth(getResources)
+export const POST = withAuth(createResource)
+export const DELETE = withAuth(deleteResource)

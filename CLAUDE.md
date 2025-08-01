@@ -35,6 +35,14 @@ AWS_ACCESS_KEY_ID=your_aws_access_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret_key
 AWS_REGION=your_aws_region
 S3_BUCKET_NAME=your_s3_bucket_name
+
+# AWS Cognito Authentication
+NEXT_PUBLIC_AWS_REGION=your_aws_region
+NEXT_PUBLIC_COGNITO_USER_POOL_ID=your_cognito_user_pool_id
+NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=your_cognito_client_id
+NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID=your_cognito_identity_pool_id
+# Only add this if your app client has a secret (not recommended for web apps)
+COGNITO_CLIENT_SECRET=your_client_secret_if_exists
 ```
 
 ## Project Architecture

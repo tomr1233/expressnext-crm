@@ -8,9 +8,11 @@ import { GoogleDriveSyncModal } from "./google-drive-sync-modal";
 
 interface ResourcesHeaderProps {
   onResourcesUpdate?: () => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
-export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
+export function ResourcesHeader({ onResourcesUpdate, searchQuery = "", onSearchChange }: ResourcesHeaderProps) {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [resyncing, setResyncing] = useState(false);
@@ -152,6 +154,8 @@ export function ResourcesHeader({ onResourcesUpdate }: ResourcesHeaderProps) {
           <input
             type="text"
             placeholder="Search resources..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange?.(e.target.value)}
             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
           />
         </div>

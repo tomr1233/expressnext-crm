@@ -15,19 +15,21 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: BarChart3 },
-  { name: "Prospecting & Leads", href: "/leads", icon: Users },
-  { name: "Active Pipeline", href: "/pipeline", icon: Target },
-  { name: "Closed Deals", href: "/deals", icon: CheckCircle },
-  { name: "Onboarding", href: "/onboarding", icon: UserCheck },
-  { name: "Resources", href: "/resources", icon: FolderOpen },
+  { name: "Dashboard", href: "/", icon: BarChart3, permission: 'canViewDashboard' },
+  { name: "Prospecting & Leads", href: "/leads", icon: Users, permission: 'canManageLeads' },
+  { name: "Active Pipeline", href: "/pipeline", icon: Target, permission: 'canViewPipeline' },
+  { name: "Closed Deals", href: "/deals", icon: CheckCircle, permission: 'canViewReports' },
+  { name: "Onboarding", href: "/onboarding", icon: UserCheck, permission: 'canManageOnboarding' },
+  { name: "Resources", href: "/resources", icon: FolderOpen, permission: 'canManageResources' },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const permissions = usePermissions();
 
   return (
     <div
@@ -78,26 +80,28 @@ export function Sidebar() {
       {/* --- END OF MODIFIED HEADER --- */}
 
       <nav className="flex-1 p-4 space-y-2">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground border border-sidebar-border"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                collapsed && "justify-center"
-              )}
-              title={collapsed ? item.name : undefined}
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {!collapsed && <span className="ml-3">{item.name}</span>}
-            </Link>
-          );
-        })}
+        {navigation
+          .filter((item) => permissions[item.permission as keyof typeof permissions])
+          .map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground border border-sidebar-border"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  collapsed && "justify-center"
+                )}
+                title={collapsed ? item.name : undefined}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span className="ml-3">{item.name}</span>}
+              </Link>
+            );
+          })}
       </nav>
     </div>
   );

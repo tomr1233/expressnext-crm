@@ -6,7 +6,7 @@ import path from 'path'
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
 
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.AWS_REGION || 'ap-southeast-2',
   endpoint: process.env.DYNAMODB_ENDPOINT || undefined,
   credentials: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,

@@ -282,7 +282,11 @@ function FilePreview({ resource }: { resource: Resource; onClose: () => void }) 
   return renderPreview();
 }
 
-export function ResourcesGrid() {
+interface ResourcesGridProps {
+  searchQuery?: string;
+}
+
+export function ResourcesGrid({ searchQuery = "" }: ResourcesGridProps) {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -364,6 +368,20 @@ export function ResourcesGrid() {
     );
   }
 
+  // Filter resources based on search query
+  const filteredResources = resources.filter(resource => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      resource.name.toLowerCase().includes(query) ||
+      resource.description.toLowerCase().includes(query) ||
+      resource.category.toLowerCase().includes(query) ||
+      resource.department.toLowerCase().includes(query) ||
+      resource.tags.some(tag => tag.toLowerCase().includes(query))
+    );
+  });
+
   if (resources.length === 0) {
     return (
       <div className="text-center py-12">
@@ -373,10 +391,19 @@ export function ResourcesGrid() {
     );
   }
 
+  if (filteredResources.length === 0 && searchQuery.trim()) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No resources found matching &quot;{searchQuery}&quot;</p>
+        <p className="text-sm text-muted-foreground/80 mt-2">Try a different search term or clear the search to see all resources.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {resources.map((resource) => {          
+        {filteredResources.map((resource) => {          
           return (
             <Card key={resource.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">

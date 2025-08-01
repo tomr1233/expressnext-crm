@@ -4,8 +4,9 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
 import { v4 as uuidv4 } from "uuid";
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-export async function POST(request: NextRequest) {
+async function generateUploadUrl(request: NextRequest, user: AuthenticatedUser) {
   try {
     const { filename, contentType, fileSize } = await request.json();
 
@@ -59,3 +60,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withAuth(generateUploadUrl)

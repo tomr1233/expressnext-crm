@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { LeadOperations } from '@/lib/dynamodb-operations'
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-export async function GET() {
+async function getLeads(request: NextRequest, user: AuthenticatedUser) {
   try {
     const leads = await LeadOperations.getAllLeads()
     return NextResponse.json(leads)
@@ -11,7 +12,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function createLead(request: NextRequest, user: AuthenticatedUser) {
   try {
     const leadData = await request.json()
     const lead = await LeadOperations.createLead(leadData)
@@ -21,3 +22,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create lead' }, { status: 500 })
   }
 }
+
+export const GET = withAuth(getLeads)
+export const POST = withAuth(createLead)

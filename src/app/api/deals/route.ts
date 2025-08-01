@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DealOperations } from '@/lib/dynamodb-operations'
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-export async function GET() {
+async function getDeals(request: NextRequest, user: AuthenticatedUser) {
   try {
     const deals = await DealOperations.getAllDeals()
     return NextResponse.json(deals)
@@ -11,7 +12,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function createDeal(request: NextRequest, user: AuthenticatedUser) {
   try {
     const dealData = await request.json()
     const deal = await DealOperations.createDeal(dealData)
@@ -21,3 +22,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create deal' }, { status: 500 })
   }
 }
+
+export const GET = withAuth(getDeals)
+export const POST = withAuth(createDeal)

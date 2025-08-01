@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { LeadOperations } from '@/lib/dynamodb-operations'
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+async function getLead(request: NextRequest, user: AuthenticatedUser, { params }: { params: { id: string } }) {
   try {
     const lead = await LeadOperations.getLead(params.id)
     if (!lead) {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+async function updateLead(request: NextRequest, user: AuthenticatedUser, { params }: { params: { id: string } }) {
   try {
     const updates = await request.json()
     const lead = await LeadOperations.updateLead(params.id, updates)
@@ -25,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+async function deleteLead(request: NextRequest, user: AuthenticatedUser, { params }: { params: { id: string } }) {
   try {
     await LeadOperations.deleteLead(params.id)
     return NextResponse.json({ message: 'Lead deleted successfully' })
@@ -34,3 +35,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     return NextResponse.json({ error: 'Failed to delete lead' }, { status: 500 })
   }
 }
+
+export const GET = withAuth(getLead)
+export const PUT = withAuth(updateLead)
+export const DELETE = withAuth(deleteLead)
