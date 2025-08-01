@@ -1,0 +1,541 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2024-01-01T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v8.0.0",
+  "resources": [
+    {
+      "_id": "req_env",
+      "_type": "environment",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:3000",
+        "access_token": ""
+      }
+    },
+    {
+      "_id": "wrk_expressnext_crm",
+      "_type": "workspace",
+      "name": "ExpressNext CRM API",
+      "description": "API collection for ExpressNext CRM application"
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "name": "Authentication",
+      "description": "AWS Cognito authentication endpoints",
+      "parentId": "wrk_expressnext_crm"
+    },
+    {
+      "_id": "req_sign_in",
+      "_type": "request",
+      "name": "Sign In",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/sign-in",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "parentId": "fld_auth"
+    },
+    {
+      "_id": "req_sign_up",
+      "_type": "request",
+      "name": "Sign Up",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/sign-up",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"John Doe\"\n}"
+      },
+      "parentId": "fld_auth"
+    },
+    {
+      "_id": "req_confirm_sign_up",
+      "_type": "request",
+      "name": "Confirm Sign Up",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/confirm-sign-up",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"confirmationCode\": \"123456\"\n}"
+      },
+      "parentId": "fld_auth"
+    },
+    {
+      "_id": "req_confirm_and_login",
+      "_type": "request",
+      "name": "Confirm and Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/confirm-and-login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"confirmationCode\": \"123456\",\n  \"password\": \"newPassword123\"\n}"
+      },
+      "parentId": "fld_auth"
+    },
+    {
+      "_id": "req_refresh_token",
+      "_type": "request",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/refresh-token",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"{{ _.refresh_token }}\"\n}"
+      },
+      "parentId": "fld_auth"
+    },
+    {
+      "_id": "fld_leads",
+      "_type": "request_group",
+      "name": "Leads",
+      "description": "Lead management endpoints",
+      "parentId": "wrk_expressnext_crm"
+    },
+    {
+      "_id": "req_get_leads",
+      "_type": "request",
+      "name": "Get All Leads",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/leads",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_leads"
+    },
+    {
+      "_id": "req_create_lead",
+      "_type": "request",
+      "name": "Create Lead",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/leads",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"company\": \"Acme Corp\",\n  \"phone\": \"+1234567890\",\n  \"status\": \"new\"\n}"
+      },
+      "parentId": "fld_leads"
+    },
+    {
+      "_id": "req_get_lead",
+      "_type": "request",
+      "name": "Get Lead by ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/leads/LEAD_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_leads"
+    },
+    {
+      "_id": "fld_deals",
+      "_type": "request_group",
+      "name": "Deals",
+      "description": "Deal management endpoints",
+      "parentId": "wrk_expressnext_crm"
+    },
+    {
+      "_id": "req_get_deals",
+      "_type": "request",
+      "name": "Get All Deals",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/deals",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_deals"
+    },
+    {
+      "_id": "req_create_deal",
+      "_type": "request",
+      "name": "Create Deal",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/deals",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Enterprise Software Deal\",\n  \"value\": 50000,\n  \"stage\": \"contacted\",\n  \"lead_id\": \"LEAD_ID\"\n}"
+      },
+      "parentId": "fld_deals"
+    },
+    {
+      "_id": "req_get_pipelines",
+      "_type": "request",
+      "name": "Get Pipelines",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/pipelines",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_deals"
+    },
+    {
+      "_id": "fld_resources",
+      "_type": "request_group",
+      "name": "Resources",
+      "description": "File and resource management endpoints",
+      "parentId": "wrk_expressnext_crm"
+    },
+    {
+      "_id": "req_get_resources",
+      "_type": "request",
+      "name": "Get All Resources",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/resources",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_resources"
+    },
+    {
+      "_id": "req_create_resource",
+      "_type": "request",
+      "name": "Create Resource",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/resources",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"proposal.pdf\",\n  \"type\": \"document\",\n  \"category\": \"proposals\",\n  \"department\": \"sales\",\n  \"description\": \"Client proposal document\",\n  \"s3_key\": \"resources/uuid.pdf\",\n  \"file_url\": \"https://bucket.s3.region.amazonaws.com/resources/uuid.pdf\",\n  \"size\": 1024000,\n  \"tags\": [\"client\", \"proposal\"]\n}"
+      },
+      "parentId": "fld_resources"
+    },
+    {
+      "_id": "req_delete_resource",
+      "_type": "request",
+      "name": "Delete Resource",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/resources?id=RESOURCE_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_resources"
+    },
+    {
+      "_id": "req_upload_url",
+      "_type": "request",
+      "name": "Generate Upload URL",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/resources/upload-url",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"filename\": \"document.pdf\",\n  \"contentType\": \"application/pdf\",\n  \"fileSize\": 1024000\n}"
+      },
+      "parentId": "fld_resources"
+    },
+    {
+      "_id": "fld_google",
+      "_type": "request_group",
+      "name": "Google Drive",
+      "description": "Google Drive integration endpoints",
+      "parentId": "wrk_expressnext_crm"
+    },
+    {
+      "_id": "req_google_auth",
+      "_type": "request",
+      "name": "Get Auth URL",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/google/auth",
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_google_callback",
+      "_type": "request",
+      "name": "OAuth Callback",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/google/callback?code=OAUTH_CODE",
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_google_status",
+      "_type": "request",
+      "name": "Check Connection Status",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/google/status",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_google_files",
+      "_type": "request",
+      "name": "List Files",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/google/files",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_google_folders",
+      "_type": "request",
+      "name": "List Folders",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/google/folders",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_google_sync",
+      "_type": "request",
+      "name": "Sync Files",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/google/sync",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"files\": [\n    {\n      \"id\": \"google-file-id\",\n      \"name\": \"document.pdf\",\n      \"mimeType\": \"application/pdf\",\n      \"size\": \"1024000\",\n      \"modifiedTime\": \"2024-01-01T00:00:00Z\"\n    }\n  ],\n  \"category\": \"documents\",\n  \"department\": \"sales\",\n  \"tags\": [\"imported\"]\n}"
+      },
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_google_sync_enhanced",
+      "_type": "request",
+      "name": "Enhanced Sync",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/google/sync/enhanced",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"files\": [],\n  \"category\": \"documents\",\n  \"department\": \"sales\"\n}"
+      },
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_google_sync_single",
+      "_type": "request",
+      "name": "Single File Sync",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/google/sync/single",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"fileId\": \"google-file-id\",\n  \"category\": \"documents\",\n  \"department\": \"sales\"\n}"
+      },
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_google_sync_resync",
+      "_type": "request",
+      "name": "Re-sync Files",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/google/sync/re-sync",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"resourceIds\": [\"resource-id-1\", \"resource-id-2\"]\n}"
+      },
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_google_sync_check",
+      "_type": "request",
+      "name": "Check Sync Status",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/google/sync/check",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "fld_google_webhook",
+      "_type": "request_group",
+      "name": "Webhooks",
+      "description": "Google Drive webhook management",
+      "parentId": "fld_google"
+    },
+    {
+      "_id": "req_webhook_register",
+      "_type": "request",
+      "name": "Register Webhook",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/google/webhook/register",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"callbackUrl\": \"https://your-domain.com/api/google/webhook/callback\"\n}"
+      },
+      "parentId": "fld_google_webhook"
+    },
+    {
+      "_id": "req_webhook_status",
+      "_type": "request",
+      "name": "Webhook Status",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/google/webhook/status",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_google_webhook"
+    },
+    {
+      "_id": "req_webhook_callback",
+      "_type": "request",
+      "name": "Webhook Callback",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/google/webhook/callback",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"eventType\": \"file.modified\",\n  \"fileId\": \"google-file-id\"\n}"
+      },
+      "parentId": "fld_google_webhook"
+    }
+  ]
+}
