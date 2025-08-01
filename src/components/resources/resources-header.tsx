@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, Cloud, RefreshCw, Zap, ZapOff } from "lucide-react";
 import { UploadModal } from "./upload-modal";
 import { GoogleDriveSyncModal } from "./google-drive-sync-modal";
+import { ApiClient } from "@/lib/api-client";
 
 interface ResourcesHeaderProps {
   onResourcesUpdate?: () => void;
@@ -26,7 +27,7 @@ export function ResourcesHeader({ onResourcesUpdate, searchQuery = "", onSearchC
 
   const checkWebhookStatus = async () => {
     try {
-      const response = await fetch('/api/google/webhook/status');
+      const response = await ApiClient.get('/api/google/webhook/status');
       if (response.ok) {
         const data = await response.json();
         setAutoSyncEnabled(data.active || false);
@@ -44,10 +45,7 @@ export function ResourcesHeader({ onResourcesUpdate, searchQuery = "", onSearchC
       // Enable auto-sync by registering webhook
       setRegisteringWebhook(true);
       try {
-        const response = await fetch('/api/google/webhook/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
+        const response = await ApiClient.post('/api/google/webhook/register');
 
         if (!response.ok) {
           throw new Error('Failed to register webhook');
@@ -75,10 +73,7 @@ export function ResourcesHeader({ onResourcesUpdate, searchQuery = "", onSearchC
   const handleReSync = async () => {
     setResyncing(true);
     try {
-      const response = await fetch('/api/google/sync/re-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await ApiClient.post('/api/google/sync/re-sync');
 
       if (!response.ok) {
         throw new Error('Re-sync failed');

@@ -2,8 +2,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { ResourceOperations } from '@/lib/dynamodb-operations';
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function POST(_request: NextRequest) {
+async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const headersList = await headers();
     
@@ -96,3 +97,5 @@ async function handleFileRemoval(fileId: string | null) {
     console.error('Error marking file as deleted:', error);
   }
 }
+
+export const POST = withAuth(postHandler);

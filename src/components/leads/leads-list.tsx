@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Lead } from "@/lib/dynamodb";
+import { ApiClient } from "@/lib/api-client";
 
 export function LeadsList() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -15,7 +16,7 @@ export function LeadsList() {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
-        const response = await fetch('/api/leads');
+        const response = await ApiClient.get('/api/leads');
         if (!response.ok) {
           throw new Error('Failed to fetch leads');
         }

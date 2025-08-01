@@ -24,6 +24,7 @@ import {
   Search
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ApiClient } from "@/lib/api-client";
 
 interface GoogleDriveFile {
   id: string;
@@ -90,7 +91,7 @@ const loadFiles = useCallback(async () => {
       ? `/api/google/files?folderId=${currentFolderId}`
       : '/api/google/files';
     
-    const response = await fetch(url);
+    const response = await ApiClient.get(url);
     if (!response.ok) {
       if (response.status === 401) {
         setNeedsAuth(true);
@@ -111,7 +112,7 @@ const loadFiles = useCallback(async () => {
 
 const loadFolders = useCallback(async () => {
   try {
-    const response = await fetch('/api/google/folders');
+    const response = await ApiClient.get('/api/google/folders');
     if (response.ok) {
       const data = await response.json();
       setFolders(data.folders);
@@ -197,15 +198,11 @@ useEffect(() => {
     try {
       const selectedFileData = files.filter(f => selectedFiles.has(f.id));
       
-      const response = await fetch('/api/google/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          files: selectedFileData,
-          category,
-          department,
-          tags
-        })
+      const response = await ApiClient.post('/api/google/sync', {
+        files: selectedFileData,
+        category,
+        department,
+        tags
       });
 
       if (!response.ok) {

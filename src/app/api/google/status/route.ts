@@ -1,8 +1,9 @@
 // src/app/api/google/status/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function GET() {
+async function getHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('google_access_token')?.value;
@@ -18,3 +19,5 @@ export async function GET() {
     );
   }
 }
+
+export const GET = withAuth(getHandler);

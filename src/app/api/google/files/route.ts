@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, getFileTypeFromMimeType, formatBytes } from '@/lib/google-drive';
 import { getValidTokens } from '@/lib/google-auth-helpers';
 import { drive_v3 } from 'googleapis';
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
@@ -43,3 +44,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to list files from Google Drive' }, { status: 500 });
   }
 }
+
+export const GET = withAuth(getHandler);

@@ -72,7 +72,7 @@ export async function verifyAuthToken(request: NextRequest): Promise<Authenticat
   }
 }
 
-export function withAuth<T extends any[]>(
+export function withAuth<T extends unknown[]>(
   handler: (request: NextRequest, user: AuthenticatedUser, ...args: T) => Promise<NextResponse>
 ) {
   return async (request: NextRequest, ...args: T): Promise<NextResponse> => {
@@ -89,7 +89,7 @@ export function withAuth<T extends any[]>(
   }
 }
 
-export function withOptionalAuth<T extends any[]>(
+export function withOptionalAuth<T extends unknown[]>(
   handler: (request: NextRequest, user: AuthenticatedUser | null, ...args: T) => Promise<NextResponse>
 ) {
   return async (request: NextRequest, ...args: T): Promise<NextResponse> => {

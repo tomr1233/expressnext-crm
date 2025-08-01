@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { LeadOperations } from '@/lib/dynamodb-operations'
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-async function getLeads(request: NextRequest, user: AuthenticatedUser) {
+async function getLeads(_request: NextRequest, _user: AuthenticatedUser) {
   try {
     const leads = await LeadOperations.getAllLeads()
     return NextResponse.json(leads)
@@ -12,7 +12,7 @@ async function getLeads(request: NextRequest, user: AuthenticatedUser) {
   }
 }
 
-async function createLead(request: NextRequest, user: AuthenticatedUser) {
+async function createLead(request: NextRequest, _user: AuthenticatedUser) {
   try {
     const leadData = await request.json()
     const lead = await LeadOperations.createLead(leadData)

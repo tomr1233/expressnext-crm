@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient } from '@/lib/google-drive';
 import { getValidTokens } from '@/lib/google-auth-helpers';
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function GET() {
+async function getHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
@@ -25,3 +26,5 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to list folders' }, { status: 500 });
   }
 }
+
+export const GET = withAuth(getHandler);

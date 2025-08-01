@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient } from '@/lib/google-drive';
 import { getValidTokens } from '@/lib/google-auth-helpers';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/lib/supabase';
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function POST(_request: NextRequest) {
+async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
@@ -68,3 +70,5 @@ export async function POST(_request: NextRequest) {
     );
   }
 }
+
+export const POST = withAuth(postHandler);

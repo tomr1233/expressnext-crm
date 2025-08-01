@@ -7,10 +7,10 @@ import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { getValidTokens } from '@/lib/google-auth-helpers';
 import lodash from 'lodash';
-
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
 // Sync files from Google Drive to S3
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     
@@ -137,3 +137,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withAuth(postHandler);

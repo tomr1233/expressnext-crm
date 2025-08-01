@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { ApiClient } from "@/lib/api-client";
 
 export function ConnectGoogleDrive() {
   const [loading, setLoading] = useState(false);
@@ -11,7 +12,7 @@ export function ConnectGoogleDrive() {
   const handleConnect = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/google/auth");
+      const response = await ApiClient.get("/api/google/auth");
       const data = await response.json();
       
       if (data.authUrl) {

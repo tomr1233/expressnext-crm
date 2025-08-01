@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { ApiClient } from "@/lib/api-client";
 
 interface Resource {
   id: string;
@@ -294,7 +295,7 @@ export function ResourcesGrid({ searchQuery = "" }: ResourcesGridProps) {
 
   const fetchResources = async () => {
     try {
-      const response = await fetch("/api/resources");
+      const response = await ApiClient.get("/api/resources");
       if (!response.ok) throw new Error("Failed to fetch resources");
       const data = await response.json();
       setResources(data);
@@ -344,9 +345,7 @@ export function ResourcesGrid({ searchQuery = "" }: ResourcesGridProps) {
 
     setDeletingId(resourceId);
     try {
-      const response = await fetch(`/api/resources?id=${resourceId}`, {
-        method: "DELETE",
-      });
+      const response = await ApiClient.delete(`/api/resources?id=${resourceId}`);
       
       if (!response.ok) throw new Error("Failed to delete resource");
       

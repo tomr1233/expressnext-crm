@@ -1,12 +1,13 @@
 // src/app/api/google/sync/re-sync/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
 import { ResourceOperations } from '@/lib/dynamodb-operations';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { getValidTokens } from '@/lib/google-auth-helpers';
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function POST() {
+async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
@@ -146,3 +147,5 @@ export async function POST() {
     }, { status: 500 });
   }
 }
+
+export const POST = withAuth(postHandler);

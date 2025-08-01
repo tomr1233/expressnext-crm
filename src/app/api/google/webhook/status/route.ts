@@ -1,8 +1,9 @@
 // src/app/api/google/webhook/status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function GET(_request: NextRequest) {
+async function getHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     // Check for active webhook registrations
     const { data: webhookRecords } = await supabase
@@ -59,3 +60,5 @@ export async function GET(_request: NextRequest) {
     );
   }
 }
+
+export const GET = withAuth(getHandler);

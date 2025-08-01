@@ -6,9 +6,10 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { getValidTokens } from '@/lib/google-auth-helpers';
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
 // Sync a single file from Google Drive to S3
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const { fileId } = await request.json();
     
@@ -146,3 +147,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withAuth(postHandler);

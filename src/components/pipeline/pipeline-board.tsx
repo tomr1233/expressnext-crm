@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DollarSign, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Pipeline, Deal } from "@/lib/dynamodb";
+import { ApiClient } from "@/lib/api-client";
 
 interface PipelineBoardProps {
   pipelineId?: string;
@@ -21,7 +22,7 @@ export function PipelineBoard({ pipelineId }: PipelineBoardProps) {
     const fetchPipelineAndDeals = async () => {
       try {
         // Fetch default pipeline if no specific pipeline ID is provided
-        const pipelineResponse = await fetch('/api/pipelines');
+        const pipelineResponse = await ApiClient.get('/api/pipelines');
         const pipelines = await pipelineResponse.json();
         
         let selectedPipeline = pipelines.find((p: Pipeline) => p.is_default) || pipelines[0];
@@ -36,7 +37,7 @@ export function PipelineBoard({ pipelineId }: PipelineBoardProps) {
         setPipeline(selectedPipeline);
 
         // Fetch deals for this pipeline
-        const dealsResponse = await fetch('/api/deals');
+        const dealsResponse = await ApiClient.get('/api/deals');
         const allDeals = await dealsResponse.json();
         const pipelineDeals = allDeals.filter((deal: Deal) => deal.pipeline_id === selectedPipeline.id);
         setDeals(pipelineDeals);

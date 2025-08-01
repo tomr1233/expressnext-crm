@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, X, FileIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ApiClient } from "@/lib/api-client";
 
 interface UploadModalProps {
   open: boolean;
@@ -81,14 +82,10 @@ export function UploadModal({ open, onOpenChange, onUploadComplete }: UploadModa
 
     try {
       // Step 1: Get presigned URL
-      const urlResponse = await fetch("/api/resources/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type,
-          fileSize: file.size,
-        }),
+      const urlResponse = await ApiClient.post("/api/resources/upload-url", {
+        filename: file.name,
+        contentType: file.type,
+        fileSize: file.size,
       });
 
       if (!urlResponse.ok) {
@@ -113,20 +110,16 @@ export function UploadModal({ open, onOpenChange, onUploadComplete }: UploadModa
 
       // Step 3: Save metadata to database
       setProgress(66);
-      const metadataResponse = await fetch("/api/resources", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          type: getFileType(file),
-          category: formData.category,
-          department: formData.department,
-          description: formData.description,
-          s3_key: key,
-          file_url: publicUrl,
-          size: formatFileSize(file.size),
-          tags: formData.tags,
-        }),
+      const metadataResponse = await ApiClient.post("/api/resources", {
+        name: formData.name,
+        type: getFileType(file),
+        category: formData.category,
+        department: formData.department,
+        description: formData.description,
+        s3_key: key,
+        file_url: publicUrl,
+        size: formatFileSize(file.size),
+        tags: formData.tags,
       });
 
       if (!metadataResponse.ok) {

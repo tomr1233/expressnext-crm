@@ -6,8 +6,9 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { getValidTokens } from '@/lib/google-auth-helpers';
+import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
@@ -156,3 +157,5 @@ function getFileTypeFromMimeType(mimeType: string): 'document' | 'video' | 'imag
   ) return 'document';
   return 'other';
 }
+
+export const POST = withAuth(postHandler);
