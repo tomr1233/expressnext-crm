@@ -6,6 +6,9 @@ FROM node:18-alpine AS builder
 # Declare the build arguments passed from docker-compose
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_AWS_REGION
+ARG NEXT_PUBLIC_COGNITO_USER_POOL_ID
+ARG NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID
 # Add any other build-time variables here
 
 WORKDIR /app
@@ -20,7 +23,9 @@ COPY . .
 # Make the build arguments available as environment variables for the build
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
-# AWS variables will be provided at runtime via --env-file
+ENV NEXT_PUBLIC_AWS_REGION=$NEXT_PUBLIC_AWS_REGION
+ENV NEXT_PUBLIC_COGNITO_USER_POOL_ID=$NEXT_PUBLIC_COGNITO_USER_POOL_ID
+ENV NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=$NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID
 # Add any other build-time variables here
 
 # Build the Next.js app (now with access to env variables)
