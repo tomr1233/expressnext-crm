@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, LogOut, User, Settings } from "lucide-react";
+import { Bell, Search, LogOut, User, Settings, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -24,6 +24,21 @@ export function Header() {
       await signOut();
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleCopyAccessToken = async () => {
+    try {
+      const accessToken = user?.accessToken;
+      if (accessToken) {
+        await navigator.clipboard.writeText(accessToken);
+        // You could add a toast notification here if you have one
+        console.log('Access token copied to clipboard');
+      } else {
+        console.error('No access token available');
+      }
+    } catch (error) {
+      console.error('Failed to copy access token:', error);
     }
   };
   
@@ -89,6 +104,10 @@ export function Header() {
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyAccessToken}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy Access Token
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-red-600">

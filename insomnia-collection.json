@@ -274,6 +274,20 @@
       "parentId": "fld_resources"
     },
     {
+      "_id": "req_get_resource",
+      "_type": "request",
+      "name": "Get Resource by ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/resources/RESOURCE_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_resources"
+    },
+    {
       "_id": "req_delete_resource",
       "_type": "request",
       "name": "Delete Resource",
