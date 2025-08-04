@@ -3,6 +3,7 @@ import {
   GetUserCommand,
   GlobalSignOutCommand
 } from '@aws-sdk/client-cognito-identity-provider'
+import { CognitoTokenStorage } from './secure-storage'
 
 const region = process.env.NEXT_PUBLIC_AWS_REGION
 const userPoolId = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID
@@ -47,9 +48,29 @@ function parseJwtToken(token: string) {
   }
 }
 
+// Check if token is expired or will expire soon (within 5 minutes)
+function isTokenExpiringSoon(token: string, bufferMinutes: number = 5): boolean {
+  try {
+    const payload = parseJwtToken(token)
+    if (!payload || !payload.exp) return true
+    
+    const expirationTime = payload.exp * 1000 // Convert to milliseconds
+    const currentTime = Date.now()
+    const bufferTime = bufferMinutes * 60 * 1000 // Convert minutes to milliseconds
+    
+    return (expirationTime - currentTime) <= bufferTime
+  } catch (error) {
+    console.error('Error checking token expiration:', error)
+    return true
+  }
+}
+
 const isCognitoConfigured = () => {
   return !!(userPoolId && clientId && region)
 }
+
+// Prevent multiple concurrent refresh attempts
+let refreshPromise: Promise<CognitoUser | null> | null = null
 
 export class CognitoAuthService {
   static async signIn(email: string, password: string): Promise<AuthResult> {
@@ -91,12 +112,8 @@ export class CognitoAuthService {
           accessToken: data.accessToken,
         }
 
-        // Store tokens in localStorage for persistence
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cognito_access_token', data.accessToken)
-          if (data.refreshToken) localStorage.setItem('cognito_refresh_token', data.refreshToken)
-          if (data.idToken) localStorage.setItem('cognito_id_token', data.idToken)
-        }
+        // Store tokens securely
+        CognitoTokenStorage.setTokens(data.accessToken, data.refreshToken, data.idToken)
 
         return {
           user,
@@ -173,12 +190,8 @@ export class CognitoAuthService {
           accessToken: data.accessToken,
         }
 
-        // Store tokens in localStorage for persistence
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cognito_access_token', data.accessToken)
-          if (data.refreshToken) localStorage.setItem('cognito_refresh_token', data.refreshToken)
-          if (data.idToken) localStorage.setItem('cognito_id_token', data.idToken)
-        }
+        // Store tokens securely
+        CognitoTokenStorage.setTokens(data.accessToken, data.refreshToken, data.idToken)
 
         return {
           ...data,
@@ -239,11 +252,7 @@ export class CognitoAuthService {
       }
 
       // Clear stored tokens
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('cognito_access_token')
-        localStorage.removeItem('cognito_refresh_token')
-        localStorage.removeItem('cognito_id_token')
-      }
+      CognitoTokenStorage.clearTokens()
     } catch (error) {
       console.error('Sign out error:', error)
       throw error
@@ -256,22 +265,31 @@ export class CognitoAuthService {
     }
 
     try {
-      const accessToken = typeof window !== 'undefined' 
-        ? localStorage.getItem('cognito_access_token') 
-        : null
+      const accessToken = CognitoTokenStorage.getAccessToken()
 
       if (!accessToken) {
         return null
       }
 
+      // Check if token is expired or expiring soon
+      if (isTokenExpiringSoon(accessToken, 10)) {
+        console.log('Access token is expiring soon, attempting refresh...')
+        const refreshedUser = await this.refreshUserToken()
+        if (refreshedUser) {
+          return refreshedUser
+        }
+        // If refresh fails, fall through to try with current token
+      }
+
       const command = new GetUserCommand({
-        AccessToken: accessToken,
+        AccessToken: CognitoTokenStorage.getAccessToken() || accessToken,
       })
 
       const response = await cognitoClient.send(command)
       
       if (response.Username) {
-        const tokenPayload = parseJwtToken(accessToken)
+        const currentAccessToken = CognitoTokenStorage.getAccessToken() || accessToken
+        const tokenPayload = parseJwtToken(currentAccessToken)
         const groups = tokenPayload?.['cognito:groups'] || []
         
         const emailAttribute = response.UserAttributes?.find(attr => attr.Name === 'email')
@@ -281,19 +299,29 @@ export class CognitoAuthService {
           username: response.Username,
           email: emailAttribute?.Value,
           groups,
-          accessToken,
+          accessToken: currentAccessToken,
         }
       }
 
       return null
-    } catch (error) {
+    } catch (error: any) {
       console.error('Get current user error:', error)
-      // Clear invalid token
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('cognito_access_token')
-        localStorage.removeItem('cognito_refresh_token')
-        localStorage.removeItem('cognito_id_token')
+      
+      // If token is expired, try to refresh
+      if (error.name === 'NotAuthorizedException' || error.message?.includes('Access Token has expired')) {
+        console.log('Access token expired, attempting refresh...')
+        try {
+          const refreshedUser = await this.refreshUserToken()
+          if (refreshedUser) {
+            return refreshedUser
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed after expiration:', refreshError)
+        }
       }
+      
+      // Clear invalid tokens
+      CognitoTokenStorage.clearTokens()
       return null
     }
   }
@@ -317,14 +345,7 @@ export class CognitoAuthService {
     }
 
     try {
-      if (typeof window !== 'undefined') {
-        return {
-          accessToken: localStorage.getItem('cognito_access_token'),
-          refreshToken: localStorage.getItem('cognito_refresh_token'),
-          idToken: localStorage.getItem('cognito_id_token'),
-        }
-      }
-      return null
+      return CognitoTokenStorage.getTokens()
     } catch (error) {
       console.error('Get auth session error:', error)
       return null
@@ -345,16 +366,43 @@ export class CognitoAuthService {
       return null
     }
 
+    // If a refresh is already in progress, return the existing promise
+    if (refreshPromise) {
+      return refreshPromise
+    }
+
+    refreshPromise = this._performTokenRefresh()
+    
     try {
-      const refreshToken = typeof window !== 'undefined' 
-        ? localStorage.getItem('cognito_refresh_token') 
-        : null
-      
-      const currentUser = await this.getCurrentUser()
-      
-      if (!refreshToken || !currentUser?.email) {
+      const result = await refreshPromise
+      return result
+    } finally {
+      refreshPromise = null
+    }
+  }
+
+  private static async _performTokenRefresh(): Promise<CognitoUser | null> {
+    try {
+      const refreshToken = CognitoTokenStorage.getRefreshToken()
+      const accessToken = CognitoTokenStorage.getAccessToken()
+
+      if (!refreshToken) {
+        console.log('No refresh token available')
         return null
       }
+
+      let currentEmail: string | undefined
+      if (accessToken) {
+        const tokenPayload = parseJwtToken(accessToken)
+        currentEmail = tokenPayload?.email
+      }
+
+      if (!currentEmail) {
+        console.log('No email found in token payload')
+        return null
+      }
+
+      console.log('Attempting token refresh for user:', currentEmail)
 
       const response = await fetch('/api/auth/refresh-token', {
         method: 'POST',
@@ -363,41 +411,57 @@ export class CognitoAuthService {
         },
         body: JSON.stringify({ 
           refreshToken, 
-          email: currentUser.email 
+          email: currentEmail 
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
+        console.error('Token refresh API error:', data.error)
+        
+        // If refresh token is invalid, clear all tokens
+        if (data.error?.includes('Refresh Token has expired') || 
+            data.error?.includes('Refresh token is not valid') ||
+            response.status === 400) {
+          console.log('Refresh token expired or invalid, clearing tokens')
+          CognitoTokenStorage.clearTokens()
+        }
+        
         throw new Error(data.error || 'Token refresh failed')
       }
 
       if (data.success && data.accessToken) {
-        const tokenPayload = parseJwtToken(data.accessToken)
-        const groups = tokenPayload?.['cognito:groups'] || []
+        const newTokenPayload = parseJwtToken(data.accessToken)
+        const groups = newTokenPayload?.['cognito:groups'] || []
         
         const refreshedUser: CognitoUser = {
-          userId: tokenPayload?.sub || currentUser.userId,
-          username: tokenPayload?.username || currentUser.username,
-          email: tokenPayload?.email || currentUser.email,
+          userId: newTokenPayload?.sub || '',
+          username: newTokenPayload?.username || currentEmail,
+          email: newTokenPayload?.email || currentEmail,
           groups,
           accessToken: data.accessToken,
         }
 
         // Update stored tokens
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cognito_access_token', data.accessToken)
-          if (data.refreshToken) localStorage.setItem('cognito_refresh_token', data.refreshToken)
-          if (data.idToken) localStorage.setItem('cognito_id_token', data.idToken)
-        }
+        CognitoTokenStorage.setTokens(data.accessToken, data.refreshToken, data.idToken)
 
+        console.log('Token refresh successful')
         return refreshedUser
       }
 
+      console.log('Token refresh failed: no access token in response')
       return null
-    } catch (error) {
+    } catch (error: any) {
       console.error('Refresh token error:', error)
+      
+      // If refresh token is expired or invalid, clear all tokens
+      if (error.message?.includes('Refresh Token has expired') || 
+          error.message?.includes('Refresh token is not valid')) {
+        console.log('Clearing expired refresh token')
+        CognitoTokenStorage.clearTokens()
+      }
+      
       return null
     }
   }

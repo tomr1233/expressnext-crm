@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Plus, Download, Filter } from "lucide-react";
+import { CSVImport } from "./csv-import";
 
 export function LeadsHeader() {
   return (
@@ -17,6 +18,7 @@ export function LeadsHeader() {
           <Download className="h-4 w-4 mr-2" />
           Export
         </Button>
+        <CSVImport />
         <Button size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Add Lead
