@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getValidTokens } from '@/lib/google-auth-helpers';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-async function postHandler(request: NextRequest, user: AuthenticatedUser) {
+async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
@@ -62,7 +62,23 @@ async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   }
 }
 
-async function updateExistingResource(file: any, existingResource: any, drive: any) {
+interface DriveFileData {
+  id: string;
+  name: string;
+  size?: string;
+  mimeType: string;
+  modifiedTime: string;
+}
+
+interface ExistingResource {
+  id: string;
+  name: string;
+  size?: number;
+  s3_key: string;
+  version?: number;
+}
+
+async function updateExistingResource(file: DriveFileData, existingResource: ExistingResource, drive: any) {
   // Download and upload new version
   const fileBuffer = await downloadFileFromDrive(drive, file.id, file.mimeType);
   
@@ -87,7 +103,7 @@ async function updateExistingResource(file: any, existingResource: any, drive: a
   });
 }
 
-async function createNewResource(file: any, category: string, department: string, tags: string[], drive: any) {
+async function createNewResource(file: DriveFileData, category: string, department: string, tags: string[], drive: any) {
   // Download file from Google Drive
   const fileBuffer = await downloadFileFromDrive(drive, file.id, file.mimeType);
   

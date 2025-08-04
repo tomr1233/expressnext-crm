@@ -9,7 +9,7 @@ import { getValidTokens } from '@/lib/google-auth-helpers';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
 // Sync a single file from Google Drive to S3
-async function postHandler(request: NextRequest, user: AuthenticatedUser) {
+async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
   try {
     const { fileId } = await request.json();
     

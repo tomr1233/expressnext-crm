@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-async function postHandler(request: NextRequest, user: AuthenticatedUser) {
+async function postHandler(_request: NextRequest, _user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {

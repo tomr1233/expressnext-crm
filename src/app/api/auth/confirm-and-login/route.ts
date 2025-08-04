@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { 
   CognitoIdentityProviderClient, 
   ConfirmSignUpCommand,
+  ConfirmSignUpCommandInput,
   InitiateAuthCommand,
   AuthFlowType
 } from '@aws-sdk/client-cognito-identity-provider'
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     const secretHash = calculateSecretHash(email)
 
     // First, confirm the sign up
-    const confirmInput: any = {
+    const confirmInput: ConfirmSignUpCommandInput = {
       ClientId: clientId!,
       Username: email,
       ConfirmationCode: confirmationCode,
@@ -97,10 +98,11 @@ export async function POST(request: NextRequest) {
       signedIn: false,
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Confirmation failed'
     console.error('Confirm and login API error:', error)
     return NextResponse.json(
-      { error: error.message || 'Confirmation failed' },
+      { error: errorMessage },
       { status: 400 }
     )
   }

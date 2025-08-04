@@ -11,6 +11,31 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+          "caughtErrorsIgnorePattern": "^_"
+        }
+      ],
+      "@typescript-eslint/no-explicit-any": "warn"
+    }
+  },
+  {
+    files: ["src/app/api/google/**/*.ts", "src/lib/google-drive.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off"
+    }
+  },
+  {
+    files: ["src/scripts/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off"
+    }
+  }
 ];
 
 export default eslintConfig;

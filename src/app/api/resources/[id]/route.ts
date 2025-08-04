@@ -8,10 +8,10 @@ import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 async function getResourceById(
   request: NextRequest,
   user: AuthenticatedUser,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(

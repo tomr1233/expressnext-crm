@@ -7,7 +7,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-async function getHandler(request: NextRequest, user: AuthenticatedUser) {
+async function getHandler(_request: NextRequest, _user: AuthenticatedUser) {
   try {
     // Use stored tokens for cron jobs instead of cookies
     const tokens = await getStoredTokens();
@@ -44,12 +44,12 @@ async function getHandler(request: NextRequest, user: AuthenticatedUser) {
           console.log(`Marked resource ${resource.name} as deleted`);
         } else if (new Date(file.modifiedTime!) > new Date(resource.last_synced_at || '1970-01-01')) {
           // File was modified, sync it immediately
-          await syncUpdatedFile(resource, file, drive);
+          await syncUpdatedFile(resource, file, drive as any);
           updatedCount++;
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`Error checking file ${resource.name}:`, error);
-        if (error.code === 404) {
+        if ((error as { code?: number }).code === 404) {
           // File not found, mark as deleted
           await ResourceOperations.updateResourceSyncStatus(resource.id, 'deleted');
         } else {
@@ -71,7 +71,24 @@ async function getHandler(request: NextRequest, user: AuthenticatedUser) {
   }
 }
 
-async function syncUpdatedFile(resource: any, file: any, drive: any) {
+interface DriveFile {
+  id: string;
+  name: string;
+  size?: string;
+  mimeType: string;
+  modifiedTime: string;
+}
+
+interface ResourceData {
+  id: string;
+  name: string;
+  size?: number;
+  s3_key: string;
+  version?: number;
+  last_synced_at?: string;
+}
+
+async function syncUpdatedFile(resource: ResourceData, file: DriveFile, drive: any) {
   try {
     console.log(`Syncing updated file: ${file.name}`);
     

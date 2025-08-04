@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PipelineOperations } from '@/lib/dynamodb-operations'
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-async function getPipelines(request: NextRequest, user: AuthenticatedUser) {
+async function getPipelines(_request: NextRequest, _user: AuthenticatedUser) {
   try {
     const pipelines = await PipelineOperations.getAllPipelines()
     return NextResponse.json(pipelines)
@@ -12,7 +12,7 @@ async function getPipelines(request: NextRequest, user: AuthenticatedUser) {
   }
 }
 
-async function createPipeline(request: NextRequest, user: AuthenticatedUser) {
+async function createPipeline(request: NextRequest, _user: AuthenticatedUser) {
   try {
     const pipelineData = await request.json()
     const pipeline = await PipelineOperations.createPipeline(pipelineData)

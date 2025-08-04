@@ -7,7 +7,7 @@ import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { getValidTokens } from '@/lib/google-auth-helpers';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-async function postHandler(request: NextRequest, user: AuthenticatedUser) {
+async function postHandler(_request: NextRequest, _user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {

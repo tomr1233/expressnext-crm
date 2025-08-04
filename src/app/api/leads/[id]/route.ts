@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { LeadOperations } from '@/lib/dynamodb-operations'
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-async function getLead(request: NextRequest, user: AuthenticatedUser, { params }: { params: { id: string } }) {
+async function getLead(request: NextRequest, user: AuthenticatedUser, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const lead = await LeadOperations.getLead(params.id)
+    const { id } = await params
+    const lead = await LeadOperations.getLead(id)
     if (!lead) {
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
     }
@@ -15,10 +16,11 @@ async function getLead(request: NextRequest, user: AuthenticatedUser, { params }
   }
 }
 
-async function updateLead(request: NextRequest, user: AuthenticatedUser, { params }: { params: { id: string } }) {
+async function updateLead(request: NextRequest, user: AuthenticatedUser, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const updates = await request.json()
-    const lead = await LeadOperations.updateLead(params.id, updates)
+    const lead = await LeadOperations.updateLead(id, updates)
     return NextResponse.json(lead)
   } catch (error) {
     console.error('Error updating lead:', error)
@@ -26,9 +28,10 @@ async function updateLead(request: NextRequest, user: AuthenticatedUser, { param
   }
 }
 
-async function deleteLead(request: NextRequest, user: AuthenticatedUser, { params }: { params: { id: string } }) {
+async function deleteLead(request: NextRequest, user: AuthenticatedUser, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await LeadOperations.deleteLead(params.id)
+    const { id } = await params
+    await LeadOperations.deleteLead(id)
     return NextResponse.json({ message: 'Lead deleted successfully' })
   } catch (error) {
     console.error('Error deleting lead:', error)

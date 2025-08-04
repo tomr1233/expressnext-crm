@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { DealOperations } from '@/lib/dynamodb-operations'
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-async function getDeal(request: NextRequest, user: AuthenticatedUser, { params }: { params: { id: string } }) {
+async function getDeal(request: NextRequest, user: AuthenticatedUser, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const deal = await DealOperations.getDeal(params.id)
+    const { id } = await params
+    const deal = await DealOperations.getDeal(id)
     if (!deal) {
       return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
     }

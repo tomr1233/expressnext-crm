@@ -4,7 +4,7 @@ import { getValidTokens } from '@/lib/google-auth-helpers';
 import { drive_v3 } from 'googleapis';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-async function getHandler(request: NextRequest, user: AuthenticatedUser) {
+async function getHandler(request: NextRequest, _user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {

@@ -23,8 +23,8 @@ export async function createDynamoDBTable() {
       await client.send(new DescribeTableCommand({ TableName: TABLE_NAME }))
       console.log(`Table ${TABLE_NAME} already exists.`)
       return
-    } catch (error: any) {
-      if (error.name !== 'ResourceNotFoundException') {
+    } catch (error: unknown) {
+      if ((error as { name?: string }).name !== 'ResourceNotFoundException') {
         throw error
       }
       // Table doesn't exist, proceed to create it

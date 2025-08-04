@@ -24,7 +24,7 @@ export async function createTable() {
       await client.send(new DescribeTableCommand({ TableName: TABLE_NAME }))
       console.log(`Table ${TABLE_NAME} already exists`)
       return
-    } catch (error) {
+    } catch (_error) {
       // Table doesn't exist, continue to create it
     }
 

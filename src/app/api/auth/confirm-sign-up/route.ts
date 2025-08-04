@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { 
   CognitoIdentityProviderClient, 
-  ConfirmSignUpCommand
+  ConfirmSignUpCommand,
+  ConfirmSignUpCommandInput
 } from '@aws-sdk/client-cognito-identity-provider'
 import CryptoJS from 'crypto-js'
 
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     const secretHash = calculateSecretHash(username)
-    const commandInput: any = {
+    const commandInput: ConfirmSignUpCommandInput = {
       ClientId: clientId!,
       Username: username,
       ConfirmationCode: confirmationCode,
@@ -44,15 +45,16 @@ export async function POST(request: NextRequest) {
     }
 
     const command = new ConfirmSignUpCommand(commandInput)
-    const response = await cognitoClient.send(command)
+    await cognitoClient.send(command)
     
     return NextResponse.json({
       success: true,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Confirmation failed'
     console.error('Confirm sign up API error:', error)
     return NextResponse.json(
-      { error: error.message || 'Confirmation failed' },
+      { error: errorMessage },
       { status: 400 }
     )
   }

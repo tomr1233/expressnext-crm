@@ -7,7 +7,7 @@ import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
 // GET all resources
-async function getResources(request: NextRequest, user: AuthenticatedUser) {
+async function getResources(_request: NextRequest, _user: AuthenticatedUser) {
   try {
     const resources = await ResourceOperations.getAllResources();
 
@@ -81,7 +81,7 @@ async function createResource(request: NextRequest, user: AuthenticatedUser) {
 }
 
 // DELETE resource
-async function deleteResource(request: NextRequest, user: AuthenticatedUser) {
+async function deleteResource(request: NextRequest, _user: AuthenticatedUser) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

@@ -3,7 +3,7 @@ import { getDriveClient } from '@/lib/google-drive';
 import { getValidTokens } from '@/lib/google-auth-helpers';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-async function getHandler(request: NextRequest, user: AuthenticatedUser) {
+async function getHandler(_request: NextRequest, _user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {

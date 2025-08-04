@@ -1,5 +1,0 @@
-name,company,source,bio_match,followers,website,status,tags
-John Smith,Acme Corp,linkedin,85,1200,https://acme.com,new,enterprise;saas
-Jane Doe,TechStart Inc,cold_email,92,3400,https://techstart.io,qualified,startup;b2b
-Mike Johnson,BigCorp Ltd,referral,78,5600,https://bigcorp.com,new,fortune500;finance
-Sarah Wilson,GrowthCo,twitter,88,2800,https://growthco.net,new,marketing;growth

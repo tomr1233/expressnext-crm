@@ -304,11 +304,11 @@ export class CognitoAuthService {
       }
 
       return null
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Get current user error:', error)
       
       // If token is expired, try to refresh
-      if (error.name === 'NotAuthorizedException' || error.message?.includes('Access Token has expired')) {
+      if ((error as Error & { name?: string }).name === 'NotAuthorizedException' || (error as Error).message?.includes('Access Token has expired')) {
         console.log('Access token expired, attempting refresh...')
         try {
           const refreshedUser = await this.refreshUserToken()
@@ -452,12 +452,12 @@ export class CognitoAuthService {
 
       console.log('Token refresh failed: no access token in response')
       return null
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Refresh token error:', error)
       
       // If refresh token is expired or invalid, clear all tokens
-      if (error.message?.includes('Refresh Token has expired') || 
-          error.message?.includes('Refresh token is not valid')) {
+      if ((error as Error).message?.includes('Refresh Token has expired') || 
+          (error as Error).message?.includes('Refresh token is not valid')) {
         console.log('Clearing expired refresh token')
         CognitoTokenStorage.clearTokens()
       }

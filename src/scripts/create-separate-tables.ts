@@ -131,15 +131,22 @@ const TABLE_CONFIGS = [
   }
 ]
 
-async function createTable(config: any) {
+interface TableConfig {
+  name: string;
+  keySchema: unknown[];
+  attributeDefinitions: unknown[];
+  globalSecondaryIndexes?: unknown[];
+}
+
+async function createTable(config: TableConfig) {
   try {
     // Check if table already exists
     try {
       await client.send(new DescribeTableCommand({ TableName: config.name }))
       console.log(`Table ${config.name} already exists.`)
       return
-    } catch (error: any) {
-      if (error.name !== 'ResourceNotFoundException') {
+    } catch (error: unknown) {
+      if ((error as { name?: string }).name !== 'ResourceNotFoundException') {
         throw error
       }
     }
@@ -150,7 +157,7 @@ async function createTable(config: any) {
       TableName: config.name,
       KeySchema: config.keySchema,
       AttributeDefinitions: config.attributeDefinitions,
-      GlobalSecondaryIndexes: config.globalSecondaryIndexes?.map((gsi: any) => ({
+      GlobalSecondaryIndexes: config.globalSecondaryIndexes?.map((gsi: unknown) => ({
         ...gsi,
         ProvisionedThroughput: undefined // Use on-demand billing
       })),

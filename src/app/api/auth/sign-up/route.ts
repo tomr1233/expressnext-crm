@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { 
   CognitoIdentityProviderClient, 
-  SignUpCommand
+  SignUpCommand,
+  SignUpCommandInput
 } from '@aws-sdk/client-cognito-identity-provider'
 import CryptoJS from 'crypto-js'
 
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
       },
     ]
 
-    const commandInput: any = {
+    const commandInput: SignUpCommandInput = {
       ClientId: clientId!,
       Username: email, // Use email as username
       Password: password,
@@ -59,10 +60,11 @@ export async function POST(request: NextRequest) {
       userSub: response.UserSub,
       codeDeliveryDetails: response.CodeDeliveryDetails,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Sign up failed'
     console.error('Sign up API error:', error)
     return NextResponse.json(
-      { error: error.message || 'Sign up failed' },
+      { error: errorMessage },
       { status: 400 }
     )
   }

@@ -7,9 +7,6 @@ import {
   FileText, 
   Download, 
   Eye, 
-  Video, 
-  Image, 
-  File, 
   Loader2, 
   Trash2, 
   Maximize2,
@@ -18,7 +15,6 @@ import {
   CheckCircle
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { cn } from "@/lib/utils";
 import { ApiClient } from "@/lib/api-client";
 
 interface Resource {
@@ -44,18 +40,18 @@ interface Resource {
   version?: number;
 }
 
-const getFileIcon = (type: string) => {
-  switch (type) {
-    case "video":
-      return Video;
-    case "image":
-      return Image;
-    case "document":
-      return FileText;
-    default:
-      return File;
-  }
-};
+// const getFileIcon = (type: string) => {
+//   switch (type) {
+//     case "video":
+//       return Video;
+//     case "image":
+//       return Image;
+//     case "document":
+//       return FileText;
+//     default:
+//       return File;
+//   }
+// };
 
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
@@ -69,71 +65,6 @@ const getCategoryColor = (category: string) => {
   return colors[category] || "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
 };
 
-// Component to display file type indicator
-function FileTypeIndicator({ resource }: { resource: Resource }) {
-  const FileIcon = getFileIcon(resource.type);
-  const extension = resource.name.split('.').pop()?.toLowerCase();
-  
-  // Color coding for different document types
-  const getTypeColor = (ext: string) => {
-    switch (ext) {
-      case 'pdf': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case 'doc':
-      case 'docx': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-      case 'xls':
-      case 'xlsx': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'ppt':
-      case 'pptx': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-      case 'txt': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-      case 'json': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-      case 'gif':
-      case 'svg': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
-      case 'mp4':
-      case 'mov':
-      case 'avi':
-      case 'webm': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-    }
-  };
-
-  const getFileTypeName = (ext: string) => {
-    switch (ext) {
-      case 'pdf': return 'PDF Document';
-      case 'doc':
-      case 'docx': return 'Word Document';
-      case 'xls':
-      case 'xlsx': return 'Excel Spreadsheet';
-      case 'ppt':
-      case 'pptx': return 'PowerPoint Presentation';
-      case 'txt': return 'Text File';
-      case 'json': return 'JSON File';
-      case 'jpg':
-      case 'jpeg': return 'JPEG Image';
-      case 'png': return 'PNG Image';
-      case 'gif': return 'GIF Image';
-      case 'svg': return 'SVG Image';
-      case 'mp4': return 'MP4 Video';
-      case 'mov': return 'MOV Video';
-      case 'avi': return 'AVI Video';
-      case 'webm': return 'WebM Video';
-      default: return 'File';
-    }
-  };
-
-  return (
-    <div className="flex items-center space-x-2">
-      <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-        <FileIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-      </div>
-      <Badge className={cn("text-xs font-medium", getTypeColor(extension || ''))}>
-        {extension?.toUpperCase() || 'FILE'}
-      </Badge>
-    </div>
-  );
-}
 
 // Component to preview text-based files
 function TextFilePreview({ fileUrl, onLoad, onError }: { fileUrl: string; onLoad: () => void; onError: () => void }) {
@@ -185,6 +116,7 @@ function FilePreview({ resource }: { resource: Resource; onClose: () => void }) 
     if (resource.type === 'image') {
       return (
         <div className="relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={resource.download_url || resource.file_url}
             alt={resource.name}

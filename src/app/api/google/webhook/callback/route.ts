@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { ResourceOperations } from '@/lib/dynamodb-operations';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-async function postHandler(request: NextRequest, user: AuthenticatedUser) {
+async function postHandler(_request: NextRequest, _user: AuthenticatedUser) {
   try {
     const headersList = await headers();
     

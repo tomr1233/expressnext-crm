@@ -66,10 +66,11 @@ export async function POST(request: NextRequest) {
       { error: 'Token refresh failed' },
       { status: 400 }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Token refresh failed'
     console.error('Refresh token API error:', error)
     return NextResponse.json(
-      { error: error.message || 'Token refresh failed' },
+      { error: errorMessage },
       { status: 400 }
     )
   }

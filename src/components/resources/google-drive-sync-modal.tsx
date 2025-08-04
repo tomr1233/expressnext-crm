@@ -80,7 +80,7 @@ export function GoogleDriveSyncModal({ open, onOpenChange, onSyncComplete }: Goo
       loadFiles();
       loadFolders();
     }
-  }, [open, currentFolderId]);
+  }, [open, currentFolderId, loadFiles, loadFolders]);
 
 // Update the loadFiles function to use the correct endpoint
 const loadFiles = useCallback(async () => {

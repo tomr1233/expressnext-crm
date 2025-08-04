@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PipelineOperations } from '@/lib/dynamodb-operations'
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-async function getPipeline(request: NextRequest, user: AuthenticatedUser, { params }: { params: { id: string } }) {
+async function getPipeline(request: NextRequest, user: AuthenticatedUser, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const pipeline = await PipelineOperations.getPipeline(params.id)
+    const { id } = await params
+    const pipeline = await PipelineOperations.getPipeline(id)
     if (!pipeline) {
       return NextResponse.json({ error: 'Pipeline not found' }, { status: 404 })
     }

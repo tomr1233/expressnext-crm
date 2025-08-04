@@ -278,7 +278,7 @@ if (require.main === module) {
       await createBackup()
       
       console.log('\nStarting migration...')
-      const stats = await migrateData()
+      await migrateData()
       
       console.log('\nMigration completed successfully!')
       console.log('Please verify the data in the new tables before removing the old table.')

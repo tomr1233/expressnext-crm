@@ -6,7 +6,7 @@ import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
 import { v4 as uuidv4 } from "uuid";
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-async function generateUploadUrl(request: NextRequest, user: AuthenticatedUser) {
+async function generateUploadUrl(request: NextRequest, _user: AuthenticatedUser) {
   try {
     const { filename, contentType, fileSize } = await request.json();
 

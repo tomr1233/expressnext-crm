@@ -10,7 +10,7 @@ import lodash from 'lodash';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
 // Sync files from Google Drive to S3
-async function postHandler(request: NextRequest, user: AuthenticatedUser) {
+async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     

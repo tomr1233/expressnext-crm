@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { LoginForm } from '@/components/auth/login-form'
 import { SignUpForm } from '@/components/auth/signup-form'
-import { Button } from '@/components/ui/button'
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')

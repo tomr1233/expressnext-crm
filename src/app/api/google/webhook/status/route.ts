@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-async function getHandler(request: NextRequest, user: AuthenticatedUser) {
+async function getHandler(_request: NextRequest, _user: AuthenticatedUser) {
   try {
     // Check for active webhook registrations
     const { data: webhookRecords } = await supabase

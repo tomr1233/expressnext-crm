@@ -73,10 +73,11 @@ export async function POST(request: NextRequest) {
       { error: 'Authentication failed' },
       { status: 400 }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Sign in failed'
     console.error('Sign in API error:', error)
     return NextResponse.json(
-      { error: error.message || 'Sign in failed' },
+      { error: errorMessage },
       { status: 400 }
     )
   }
