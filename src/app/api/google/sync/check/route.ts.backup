@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
 import { ResourceOperations } from '@/lib/dynamodb-operations';
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { getValidTokens } from '@/lib/google-auth-helpers';
@@ -61,8 +62,6 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
         console.log(`Uploading to S3 with key: ${s3Key}`);
         
         // Upload to S3 without ACL (let bucket policy handle public access)
-        const S3Module = await import("@aws-sdk/client-s3");
-        const PutObjectCommand = (S3Module as any).PutObjectCommand;
         const putCommand = new PutObjectCommand({
           Bucket: S3_BUCKET_NAME,
           Key: s3Key,
@@ -70,7 +69,7 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
           ContentType: contentType,
         });
         
-        await (s3Client as any).send(putCommand);
+        await s3Client.send(putCommand);
         
         // Generate public URL based on your S3 bucket configuration
         const publicUrl = `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
@@ -101,7 +100,7 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
           description: `Filetype: ${lodash.startCase(lodash.toLower(fileType))}, Created: ${localDate}, Size: ${file.size ? parseInt(file.size) : 0} kb`,
           s3_key: s3Key,
           file_url: publicUrl,
-          size: file.size || '0',
+          size: file.size ? parseInt(file.size) : 0,
           tags,
           upload_date: new Date().toISOString(),
           uploaded_by: 'google-drive-sync',

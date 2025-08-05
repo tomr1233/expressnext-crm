@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ResourceOperations } from "@/lib/dynamodb-operations";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
@@ -33,19 +32,21 @@ async function getResourceById(
     let resourceWithUrl = { ...resource };
     if (resource.s3_key) {
       try {
+        const S3Module = await import("@aws-sdk/client-s3");
+        const GetObjectCommand = (S3Module as any).GetObjectCommand;
         const command = new GetObjectCommand({
           Bucket: S3_BUCKET_NAME,
           Key: resource.s3_key,
         });
 
-        const downloadUrl = await getSignedUrl(s3Client, command, {
+        const downloadUrl = await getSignedUrl(s3Client as any, command, {
           expiresIn: 3600, // URL expires in 1 hour
         });
 
         resourceWithUrl = {
           ...resource,
           download_url: downloadUrl,
-        };
+        } as any;
       } catch (s3Error) {
         console.error("Error generating signed URL:", s3Error);
         // Return resource without download URL if S3 fails

@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
 import { ResourceOperations } from '@/lib/dynamodb-operations';
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { getValidTokens } from '@/lib/google-auth-helpers';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
@@ -91,6 +90,8 @@ async function postHandler(_request: NextRequest, _user: AuthenticatedUser) {
           const fileBuffer = await downloadFileFromDrive(drive, googleFile.id!, googleFile.mimeType || '');
           
           // Upload to S3 (using existing key to maintain URL)
+          const S3Module = await import("@aws-sdk/client-s3");
+          const PutObjectCommand = (S3Module as any).PutObjectCommand;
           const putCommand = new PutObjectCommand({
             Bucket: S3_BUCKET_NAME,
             Key: resource.s3_key,
@@ -98,7 +99,7 @@ async function postHandler(_request: NextRequest, _user: AuthenticatedUser) {
             ContentType: (googleFile.mimeType || '').includes('google-apps') ? 'application/pdf' : googleFile.mimeType,
           });
           
-          await s3Client.send(putCommand);
+          await (s3Client as any).send(putCommand);
           
           // Update database record
           await ResourceOperations.updateResource(resource.id, {

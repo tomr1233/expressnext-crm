@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, downloadFileFromDrive, formatBytes } from '@/lib/google-drive';
 import { ResourceOperations } from '@/lib/dynamodb-operations';
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { getValidTokens } from '@/lib/google-auth-helpers';
@@ -68,12 +67,13 @@ interface DriveFileData {
   size?: string;
   mimeType: string;
   modifiedTime: string;
+  createdTime?: string;
 }
 
 interface ExistingResource {
   id: string;
   name: string;
-  size?: number;
+  size?: number | string;
   s3_key: string;
   version?: number;
 }
@@ -83,6 +83,8 @@ async function updateExistingResource(file: DriveFileData, existingResource: Exi
   const fileBuffer = await downloadFileFromDrive(drive, file.id, file.mimeType);
   
   // Upload to S3 (using existing key to maintain URL)
+  const S3Module = await import("@aws-sdk/client-s3");
+  const PutObjectCommand = (S3Module as any).PutObjectCommand;
   const putCommand = new PutObjectCommand({
     Bucket: S3_BUCKET_NAME,
     Key: existingResource.s3_key,
@@ -90,12 +92,12 @@ async function updateExistingResource(file: DriveFileData, existingResource: Exi
     ContentType: file.mimeType.includes('google-apps') ? 'application/pdf' : file.mimeType,
   });
   
-  await s3Client.send(putCommand);
+  await (s3Client as any).send(putCommand);
   
   // Update database record
   await ResourceOperations.updateResource(existingResource.id, {
     name: file.name,
-    size: file.size ? parseInt(file.size) : existingResource.size,
+    size: file.size || (typeof existingResource.size === 'string' ? existingResource.size : String(existingResource.size || 0)),
     google_modified_time: file.modifiedTime,
     last_synced_at: new Date().toISOString(),
     sync_status: 'synced',
@@ -119,6 +121,8 @@ async function createNewResource(file: DriveFileData, category: string, departme
   const s3Key = `resources/${uuidv4()}.${fileExtension}`;
   
   // Upload to S3
+  const S3Module = await import("@aws-sdk/client-s3");
+  const PutObjectCommand = (S3Module as any).PutObjectCommand;
   const putCommand = new PutObjectCommand({
     Bucket: S3_BUCKET_NAME,
     Key: s3Key,
@@ -126,7 +130,7 @@ async function createNewResource(file: DriveFileData, category: string, departme
     ContentType: file.mimeType.includes('google-apps') ? 'application/pdf' : file.mimeType,
   });
   
-  await s3Client.send(putCommand);
+  await (s3Client as any).send(putCommand);
   
   // Generate public URL
   const publicUrl = `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
@@ -148,7 +152,7 @@ async function createNewResource(file: DriveFileData, category: string, departme
     description,
     s3_key: s3Key,
     file_url: publicUrl,
-    size: file.size ? parseInt(file.size) : 0,
+    size: file.size || '0',
     tags,
     upload_date: new Date().toISOString(),
     uploaded_by: 'google-drive-sync',

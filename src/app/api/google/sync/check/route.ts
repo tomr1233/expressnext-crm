@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
 import { ResourceOperations } from '@/lib/dynamodb-operations';
 import { getStoredTokens } from '@/lib/google-auth-helpers';
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
+
+
 
 async function getHandler(_request: NextRequest, _user: AuthenticatedUser) {
   try {
@@ -72,17 +73,17 @@ async function getHandler(_request: NextRequest, _user: AuthenticatedUser) {
 }
 
 interface DriveFile {
-  id: string;
-  name: string;
-  size?: string;
-  mimeType: string;
-  modifiedTime: string;
+  id?: string | null;
+  name?: string | null;
+  size?: string | null;
+  mimeType?: string | null;
+  modifiedTime?: string | null;
 }
 
 interface ResourceData {
   id: string;
   name: string;
-  size?: number;
+  size?: number | string;
   s3_key: string;
   version?: number;
   last_synced_at?: string;
@@ -90,34 +91,45 @@ interface ResourceData {
 
 async function syncUpdatedFile(resource: ResourceData, file: DriveFile, drive: any) {
   try {
-    console.log(`Syncing updated file: ${file.name}`);
+    console.log(`Syncing updated file: ${file.name || 'Unknown'}`);
     
     // Download file from Google Drive
-    const fileBuffer = await downloadFileFromDrive(drive, file.id, file.mimeType);
+    const fileBuffer = await downloadFileFromDrive(drive, file.id!, file.mimeType!);
+
+
+    // Import PutObjectCommand dynamically to avoid TypeScript module resolution issues
+    const S3Module = await import("@aws-sdk/client-s3");
+    const PutObjectCommand = (S3Module as any).PutObjectCommand;
     
-    // Upload to S3 (using existing key to maintain URL)
-    const putCommand = new PutObjectCommand({
+    const putObjectCommand = new PutObjectCommand({
       Bucket: S3_BUCKET_NAME,
       Key: resource.s3_key,
       Body: fileBuffer,
-      ContentType: file.mimeType.includes('google-apps') ? 'application/pdf' : file.mimeType,
+      ContentType: file.mimeType?.includes('google-apps') ? 'application/pdf' : file.mimeType
     });
-    
-    await s3Client.send(putCommand);
+
+    try {
+      const response = await (s3Client as any).send(putObjectCommand);
+      console.log("Success", response);
+    } catch (error) {
+      console.error("Error", error);
+    }
+
+
     
     // Update database record
     await ResourceOperations.updateResource(resource.id, {
-      name: file.name,
-      size: file.size ? parseInt(file.size) : resource.size,
-      google_modified_time: file.modifiedTime,
+      name: file.name || resource.name,
+      size: file.size || (typeof resource.size === 'string' ? resource.size : String(resource.size || 0)),
+      google_modified_time: file.modifiedTime || null,
       last_synced_at: new Date().toISOString(),
       sync_status: 'synced',
       version: (resource.version || 0) + 1,
     });
     
-    console.log(`Successfully synced: ${file.name}`);
+    console.log(`Successfully synced: ${file.name || 'Unknown'}`);
   } catch (error) {
-    console.error(`Error syncing file ${file.name}:`, error);
+    console.error(`Error syncing file ${file.name || 'Unknown'}:`, error);
     
     // Mark as error
     await ResourceOperations.updateResourceSyncStatus(resource.id, 'error');

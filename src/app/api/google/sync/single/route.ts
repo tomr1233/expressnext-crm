@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDriveClient, downloadFileFromDrive } from '@/lib/google-drive';
 import { ResourceOperations } from '@/lib/dynamodb-operations';
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client, S3_BUCKET_NAME } from '@/lib/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { getValidTokens } from '@/lib/google-auth-helpers';
@@ -75,6 +74,8 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
       console.log(`Uploading to S3 with key: ${s3Key}`);
       
       // Upload to S3
+      const S3Module = await import("@aws-sdk/client-s3");
+      const PutObjectCommand = (S3Module as any).PutObjectCommand;
       const putCommand = new PutObjectCommand({
         Bucket: S3_BUCKET_NAME,
         Key: s3Key,
@@ -82,27 +83,27 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
         ContentType: contentType,
       });
       
-      await s3Client.send(putCommand);
+      await (s3Client as any).send(putCommand);
       
       // Generate public URL
       const publicUrl = `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
       
       const resourceData = {
         name: file.name || 'Unknown',
-        type: file.mimeType?.startsWith('video/') ? 'video' :
+        type: (file.mimeType?.startsWith('video/') ? 'video' :
               file.mimeType?.startsWith('image/') ? 'image' :
               file.mimeType?.includes('document') || file.mimeType?.includes('text') || 
               file.mimeType?.includes('pdf') || file.mimeType?.includes('sheet') || 
-              file.mimeType?.includes('presentation') ? 'document' : 'other',
+              file.mimeType?.includes('presentation') ? 'document' : 'other') as 'document' | 'video' | 'image' | 'other',
         s3_key: s3Key,
         file_url: publicUrl,
-        size: file.size ? parseInt(file.size) : 0,
+        size: file.size || '0',
         upload_date: new Date().toISOString(),
         uploaded_by: 'google-drive-auto-sync',
         google_drive_id: fileId,
         google_modified_time: file.modifiedTime,
         last_synced_at: new Date().toISOString(),
-        sync_status: 'synced',
+        sync_status: 'synced' as const,
         version: existingResource ? (existingResource.version || 1) + 1 : 1,
       };
 
