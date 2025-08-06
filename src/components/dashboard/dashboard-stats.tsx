@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Target, CheckCircle, DollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ApiClient } from "@/lib/api-client";
@@ -74,30 +75,22 @@ export function DashboardStats() {
   const stats = [
     {
       title: "Total Leads",
-      value: loading ? "..." : data.totalLeads.toLocaleString(),
-      change: "+12%",
-      changeType: "positive" as const,
+      value: data.totalLeads.toLocaleString(),
       icon: Users,
     },
     {
       title: "Active Deals",
-      value: loading ? "..." : data.activeDeals.toString(),
-      change: "+5%",
-      changeType: "positive" as const,
+      value: data.activeDeals.toString(),
       icon: Target,
     },
     {
       title: "Deals Closed This Month",
-      value: loading ? "..." : data.closedDealsThisMonth.toString(),
-      change: "+25%",
-      changeType: "positive" as const,
+      value: data.closedDealsThisMonth.toString(),
       icon: CheckCircle,
     },
     {
       title: "Monthly Revenue",
-      value: loading ? "..." : `$${data.monthlyRevenue.toLocaleString()}`,
-      change: "+18%",
-      changeType: "positive" as const,
+      value: `$${data.monthlyRevenue.toLocaleString()}`,
       icon: DollarSign,
     },
   ];
@@ -113,10 +106,11 @@ export function DashboardStats() {
             <stat.icon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-              {stat.change} from last month
-            </p>
+            {loading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+            )}
           </CardContent>
         </Card>
       ))}

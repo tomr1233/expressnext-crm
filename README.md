@@ -112,6 +112,84 @@ A modern, comprehensive Customer Relationship Management (CRM) system specifical
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
 
+## 🐳 Docker Development Setup
+
+For a consistent development environment with continuous iteration flow, you can use Docker Compose to run the application in a containerized environment with hot reloading.
+
+### Prerequisites
+
+- Docker and Docker Compose installed on your machine
+- `.env.local` file with required environment variables (see installation steps above)
+
+### Quick Start with Docker
+
+1. **Clone and navigate to the repository**
+   ```bash
+   git clone https://github.com/yourusername/ai-agency-crm.git
+   cd ai-agency-crm
+   ```
+
+2. **Set up environment variables**
+   Create a `.env.local` file with all required variables as shown in the installation section above.
+
+3. **Start the development container**
+   ```bash
+   docker-compose -f docker-compose.dev.yaml up --build
+   ```
+
+4. **Access the application**
+   Navigate to [http://localhost:3001](http://localhost:3001) to see the application.
+
+### Docker Development Features
+
+- **Hot Reloading**: Source code changes are automatically reflected in the container
+- **Volume Mounting**: Your local codebase is mounted into the container for real-time updates
+- **Consistent Environment**: Same Node.js version and dependencies across all development machines
+- **Easy Setup**: No need to install Node.js or dependencies locally
+
+### Docker Commands
+
+```bash
+# Start development environment
+docker-compose -f docker-compose.dev.yaml up
+
+# Start in detached mode (background)
+docker-compose -f docker-compose.dev.yaml up -d
+
+# Rebuild and start (after dependency changes)
+docker-compose -f docker-compose.dev.yaml up --build
+
+# Stop the development environment
+docker-compose -f docker-compose.dev.yaml down
+
+# View logs
+docker-compose -f docker-compose.dev.yaml logs -f
+
+# Access container shell
+docker exec -it expressnext-crm-dev-container sh
+
+# Install new dependencies (after changing package.json)
+docker-compose -f docker-compose.dev.yaml down
+docker-compose -f docker-compose.dev.yaml up --build
+```
+
+### Production Docker Build
+
+For production deployment, use the optimized multi-stage Dockerfile:
+
+```bash
+# Build production image
+docker-compose up --build
+
+# Run production container
+docker-compose up -d
+```
+
+The production build includes:
+- Multi-stage build process for smaller image size
+- Optimized Next.js build with all environment variables
+- Production-ready Node.js environment
+
 ## 📂 Project Structure
 
 ```
