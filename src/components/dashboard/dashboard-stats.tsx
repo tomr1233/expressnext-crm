@@ -1,38 +1,107 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Target, CheckCircle, DollarSign } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ApiClient } from "@/lib/api-client";
 
-const stats = [
-  {
-    title: "Total Leads",
-    value: "1,234",
-    change: "+12%",
-    changeType: "positive" as const,
-    icon: Users,
-  },
-  {
-    title: "Active Deals",
-    value: "23",
-    change: "+5%",
-    changeType: "positive" as const,
-    icon: Target,
-  },
-  {
-    title: "Deals Closed This Month",
-    value: "8",
-    change: "+25%",
-    changeType: "positive" as const,
-    icon: CheckCircle,
-  },
-  {
-    title: "Monthly Revenue",
-    value: "$45,231",
-    change: "+18%",
-    changeType: "positive" as const,
-    icon: DollarSign,
-  },
-];
+interface DashboardData {
+  totalLeads: number;
+  activeDeals: number;
+  closedDealsThisMonth: number;
+  monthlyRevenue: number;
+}
 
 export function DashboardStats() {
+  const [data, setData] = useState<DashboardData>({
+    totalLeads: 0,
+    activeDeals: 0,
+    closedDealsThisMonth: 0,
+    monthlyRevenue: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [leadsRes, dealsRes] = await Promise.all([
+          ApiClient.get('/api/leads'),
+          ApiClient.get('/api/deals'),
+        ]);
+
+        if (!leadsRes.ok || !dealsRes.ok) {
+          throw new Error('Failed to fetch dashboard data');
+        }
+
+        const leads = await leadsRes.json();
+        const deals = await dealsRes.json();
+
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+
+        const activeDeals = deals.filter((deal: any) => deal.stage !== 'closed' && deal.stage !== 'lost').length;
+        
+        const closedDealsThisMonth = deals.filter((deal: any) => {
+          if (deal.stage !== 'closed') return false;
+          const dealDate = new Date(deal.updated_at);
+          return dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear;
+        }).length;
+
+        const monthlyRevenue = deals
+          .filter((deal: any) => {
+            if (deal.stage !== 'closed' || !deal.value) return false;
+            const dealDate = new Date(deal.updated_at);
+            return dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear;
+          })
+          .reduce((sum: number, deal: any) => sum + (deal.value || 0), 0);
+
+        setData({
+          totalLeads: leads.length || 0,
+          activeDeals,
+          closedDealsThisMonth,
+          monthlyRevenue,
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const stats = [
+    {
+      title: "Total Leads",
+      value: loading ? "..." : data.totalLeads.toLocaleString(),
+      change: "+12%",
+      changeType: "positive" as const,
+      icon: Users,
+    },
+    {
+      title: "Active Deals",
+      value: loading ? "..." : data.activeDeals.toString(),
+      change: "+5%",
+      changeType: "positive" as const,
+      icon: Target,
+    },
+    {
+      title: "Deals Closed This Month",
+      value: loading ? "..." : data.closedDealsThisMonth.toString(),
+      change: "+25%",
+      changeType: "positive" as const,
+      icon: CheckCircle,
+    },
+    {
+      title: "Monthly Revenue",
+      value: loading ? "..." : `$${data.monthlyRevenue.toLocaleString()}`,
+      change: "+18%",
+      changeType: "positive" as const,
+      icon: DollarSign,
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat) => (
