@@ -99,7 +99,7 @@ The app uses a fixed sidebar navigation with these main sections:
 - Custom sidebar color scheme with CSS variables
 
 ### Build Configuration
-- TypeScript build errors are ignored (`ignoreBuildErrors: true`)
+- TypeScript build errors are checked (`ignoreBuildErrors: false`)
 - Next.js 15 with App Router
 - Image optimization enabled for S3 and external domains
 - Security headers configured for production
@@ -109,3 +109,55 @@ The app uses a fixed sidebar navigation with these main sections:
 - Strict TypeScript is disabled (`strict: false`)
 - All integrations require proper environment variable setup
 - Google Drive requires OAuth consent screen configuration
+
+## TypeScript Best Practices
+
+### Avoiding Type Declaration Conflicts
+
+**NEVER** create custom `.d.ts` files for well-maintained packages like AWS SDK, as they override official types and cause import errors.
+
+#### Debugging TypeScript Import Issues
+```bash
+# Check what TypeScript is resolving
+npx tsc --traceResolution --noEmit | grep "package-name"
+
+# Show full TypeScript config
+npx tsc --showConfig
+
+# Find all custom type declarations
+find src -name "*.d.ts" -type f
+```
+
+#### Proper Type Extension Patterns
+```typescript
+// ✅ Good: Extend existing types
+import type { S3Client } from "@aws-sdk/client-s3";
+type ExtendedS3Client = S3Client & { customProperty?: string };
+
+// ✅ Good: Create intersection types  
+type ResourceWithUrl = Resource & { download_url?: string };
+
+// ❌ Bad: Override entire module
+declare module '@aws-sdk/client-s3' {
+  export class S3Client { ... }
+}
+```
+
+#### Type Declaration File Guidelines
+- **Avoid** for packages that include their own TypeScript definitions
+- **Check** package health: `npm ls @types/package-name`
+- **Document** why custom declarations are needed if absolutely necessary
+- **Remove** when upgrading to versions with built-in types
+
+#### Recommended TSConfig Settings
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "strict": false
+  }
+}
+```
+
+**Rule**: Trust official package types first, debug module resolution second, create custom declarations as last resort.
