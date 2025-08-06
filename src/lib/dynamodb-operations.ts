@@ -229,7 +229,7 @@ export class DealOperations {
     return result.Item as Deal || null
   }
 
-  static async getAllDeals(): Promise<Deal[]> {
+  static async getAllDeals(sortBy: string = 'created_at', sortOrder: 'asc' | 'desc' = 'desc'): Promise<Deal[]> {
     const result = await getDynamoDbClient().send(new ScanCommand({
       TableName: TABLE_NAME,
       FilterExpression: 'entity_type = :type',
@@ -238,7 +238,36 @@ export class DealOperations {
       }
     }))
 
-    return result.Items as Deal[] || []
+    const deals = result.Items as Deal[] || []
+
+    // Sort the deals based on the provided parameters
+    deals.sort((a, b) => {
+      let aValue: unknown = a[sortBy as keyof Deal]
+      let bValue: unknown = b[sortBy as keyof Deal]
+
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0
+      if (aValue == null) return sortOrder === 'asc' ? -1 : 1
+      if (bValue == null) return sortOrder === 'asc' ? 1 : -1
+
+      // Handle different data types
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        // For dates and strings
+        if (sortBy.includes('date') || sortBy.includes('_at')) {
+          aValue = new Date(aValue).getTime()
+          bValue = new Date(bValue).getTime()
+        } else {
+          aValue = aValue.toLowerCase()
+          bValue = bValue.toLowerCase()
+        }
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1
+      return 0
+    })
+
+    return deals
   }
 
   static async getDealsByPipeline(pipelineId: string): Promise<Deal[]> {

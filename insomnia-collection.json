@@ -217,6 +217,90 @@
       "parentId": "fld_deals"
     },
     {
+      "_id": "req_get_deals_sorted_title_asc",
+      "_type": "request",
+      "name": "Get Deals - Sort by Title (A-Z)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/deals?sortBy=title&sortOrder=asc",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_deals"
+    },
+    {
+      "_id": "req_get_deals_sorted_value_desc",
+      "_type": "request",
+      "name": "Get Deals - Sort by Value (High to Low)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/deals?sortBy=value&sortOrder=desc",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_deals"
+    },
+    {
+      "_id": "req_get_deals_sorted_due_date_asc",
+      "_type": "request",
+      "name": "Get Deals - Sort by Due Date (Earliest First)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/deals?sortBy=due_date&sortOrder=asc",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_deals"
+    },
+    {
+      "_id": "req_get_deals_sorted_created_desc",
+      "_type": "request",
+      "name": "Get Deals - Sort by Created Date (Newest First)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/deals?sortBy=created_at&sortOrder=desc",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_deals"
+    },
+    {
+      "_id": "req_get_deals_sorted_company_asc",
+      "_type": "request",
+      "name": "Get Deals - Sort by Company (A-Z)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/deals?sortBy=company&sortOrder=asc",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_deals"
+    },
+    {
+      "_id": "req_get_deals_sorted_stage_asc",
+      "_type": "request",
+      "name": "Get Deals - Sort by Stage",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/deals?sortBy=stage&sortOrder=asc",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parentId": "fld_deals"
+    },
+    {
       "_id": "req_get_pipelines",
       "_type": "request",
       "name": "Get Pipelines",

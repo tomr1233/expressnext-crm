@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { DealOperations } from '@/lib/dynamodb-operations'
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
 
-async function getDeals(_request: NextRequest, _user: AuthenticatedUser) {
+async function getDeals(request: NextRequest, _user: AuthenticatedUser) {
   try {
-    const deals = await DealOperations.getAllDeals()
+    const { searchParams } = new URL(request.url)
+    const sortBy = searchParams.get('sortBy') || 'created_at'
+    const sortOrder = searchParams.get('sortOrder') || 'desc'
+    
+    const deals = await DealOperations.getAllDeals(sortBy, sortOrder as 'asc' | 'desc')
     return NextResponse.json(deals)
   } catch (error) {
     console.error('Error fetching deals:', error)
