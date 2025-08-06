@@ -4,6 +4,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
 import { v4 as uuidv4 } from "uuid";
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
+import type { S3Client } from "@aws-sdk/client-s3";
 
 async function generateUploadUrl(request: NextRequest, _user: AuthenticatedUser) {
   try {
@@ -33,7 +34,7 @@ async function generateUploadUrl(request: NextRequest, _user: AuthenticatedUser)
 
     // Create a presigned URL for uploading
     const S3Module = await import("@aws-sdk/client-s3");
-    const PutObjectCommand = (S3Module as any).PutObjectCommand;
+    const PutObjectCommand = (S3Module as { PutObjectCommand: new (input: { Bucket: string; Key: string; ContentType: string }) => unknown }).PutObjectCommand;
     const command = new PutObjectCommand({
       Bucket: S3_BUCKET_NAME,
       Key: uniqueKey,
@@ -41,7 +42,7 @@ async function generateUploadUrl(request: NextRequest, _user: AuthenticatedUser)
       // Don't include ACL here if bucket policy handles public access
     });
 
-    const uploadUrl = await getSignedUrl(s3Client as any, command, {
+    const uploadUrl = await getSignedUrl(s3Client as S3Client, command as Parameters<typeof getSignedUrl>[1], {
       expiresIn: 3600, // URL expires in 1 hour
     });
 

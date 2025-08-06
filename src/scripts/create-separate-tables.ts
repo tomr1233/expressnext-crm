@@ -1,4 +1,4 @@
-import { DynamoDBClient, CreateTableCommand, DescribeTableCommand } from '@aws-sdk/client-dynamodb'
+import { DynamoDBClient, CreateTableCommand, DescribeTableCommand, KeySchemaElement, AttributeDefinition, GlobalSecondaryIndex, KeyType, ScalarAttributeType, ProjectionType } from '@aws-sdk/client-dynamodb'
 import dotenv from 'dotenv'
 import path from 'path'
 
@@ -20,112 +20,112 @@ const TABLE_CONFIGS = [
   {
     name: `${BASE_TABLE_NAME}-users`,
     keySchema: [
-      { AttributeName: 'user_id', KeyType: 'HASH' }
+      { AttributeName: 'user_id', KeyType: KeyType.HASH }
     ],
     attributeDefinitions: [
-      { AttributeName: 'user_id', AttributeType: 'S' },
-      { AttributeName: 'email', AttributeType: 'S' },
-      { AttributeName: 'role', AttributeType: 'S' }
+      { AttributeName: 'user_id', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'email', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'role', AttributeType: ScalarAttributeType.S }
     ],
     globalSecondaryIndexes: [
       {
         IndexName: 'email-index',
-        KeySchema: [{ AttributeName: 'email', KeyType: 'HASH' }],
-        Projection: { ProjectionType: 'ALL' }
+        KeySchema: [{ AttributeName: 'email', KeyType: KeyType.HASH }],
+        Projection: { ProjectionType: ProjectionType.ALL }
       },
       {
         IndexName: 'role-index',
-        KeySchema: [{ AttributeName: 'role', KeyType: 'HASH' }],
-        Projection: { ProjectionType: 'ALL' }
+        KeySchema: [{ AttributeName: 'role', KeyType: KeyType.HASH }],
+        Projection: { ProjectionType: ProjectionType.ALL }
       }
     ]
   },
   {
     name: `${BASE_TABLE_NAME}-leads`,
     keySchema: [
-      { AttributeName: 'lead_id', KeyType: 'HASH' },
-      { AttributeName: 'created_at', KeyType: 'RANGE' }
+      { AttributeName: 'lead_id', KeyType: KeyType.HASH },
+      { AttributeName: 'created_at', KeyType: KeyType.RANGE }
     ],
     attributeDefinitions: [
-      { AttributeName: 'lead_id', AttributeType: 'S' },
-      { AttributeName: 'created_at', AttributeType: 'S' },
-      { AttributeName: 'status', AttributeType: 'S' },
-      { AttributeName: 'company', AttributeType: 'S' }
+      { AttributeName: 'lead_id', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'created_at', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'status', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'company', AttributeType: ScalarAttributeType.S }
     ],
     globalSecondaryIndexes: [
       {
         IndexName: 'status-created_at-index',
         KeySchema: [
-          { AttributeName: 'status', KeyType: 'HASH' },
-          { AttributeName: 'created_at', KeyType: 'RANGE' }
+          { AttributeName: 'status', KeyType: KeyType.HASH },
+          { AttributeName: 'created_at', KeyType: KeyType.RANGE }
         ],
-        Projection: { ProjectionType: 'ALL' }
+        Projection: { ProjectionType: ProjectionType.ALL }
       },
       {
         IndexName: 'company-index',
-        KeySchema: [{ AttributeName: 'company', KeyType: 'HASH' }],
-        Projection: { ProjectionType: 'ALL' }
+        KeySchema: [{ AttributeName: 'company', KeyType: KeyType.HASH }],
+        Projection: { ProjectionType: ProjectionType.ALL }
       }
     ]
   },
   {
     name: `${BASE_TABLE_NAME}-deals`,
     keySchema: [
-      { AttributeName: 'deal_id', KeyType: 'HASH' },
-      { AttributeName: 'pipeline_id', KeyType: 'RANGE' }
+      { AttributeName: 'deal_id', KeyType: KeyType.HASH },
+      { AttributeName: 'pipeline_id', KeyType: KeyType.RANGE }
     ],
     attributeDefinitions: [
-      { AttributeName: 'deal_id', AttributeType: 'S' },
-      { AttributeName: 'pipeline_id', AttributeType: 'S' },
-      { AttributeName: 'stage', AttributeType: 'S' },
-      { AttributeName: 'due_date', AttributeType: 'S' },
-      { AttributeName: 'owner', AttributeType: 'S' }
+      { AttributeName: 'deal_id', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'pipeline_id', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'stage', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'due_date', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'owner', AttributeType: ScalarAttributeType.S }
     ],
     globalSecondaryIndexes: [
       {
         IndexName: 'stage-due_date-index',
         KeySchema: [
-          { AttributeName: 'stage', KeyType: 'HASH' },
-          { AttributeName: 'due_date', KeyType: 'RANGE' }
+          { AttributeName: 'stage', KeyType: KeyType.HASH },
+          { AttributeName: 'due_date', KeyType: KeyType.RANGE }
         ],
-        Projection: { ProjectionType: 'ALL' }
+        Projection: { ProjectionType: ProjectionType.ALL }
       },
       {
         IndexName: 'owner-created_at-index',
         KeySchema: [
-          { AttributeName: 'owner', KeyType: 'HASH' },
-          { AttributeName: 'created_at', KeyType: 'RANGE' }
+          { AttributeName: 'owner', KeyType: KeyType.HASH },
+          { AttributeName: 'created_at', KeyType: KeyType.RANGE }
         ],
-        Projection: { ProjectionType: 'ALL' }
+        Projection: { ProjectionType: ProjectionType.ALL }
       }
     ]
   },
   {
     name: `${BASE_TABLE_NAME}-resources`,
     keySchema: [
-      { AttributeName: 'resource_id', KeyType: 'HASH' },
-      { AttributeName: 'category', KeyType: 'RANGE' }
+      { AttributeName: 'resource_id', KeyType: KeyType.HASH },
+      { AttributeName: 'category', KeyType: KeyType.RANGE }
     ],
     attributeDefinitions: [
-      { AttributeName: 'resource_id', AttributeType: 'S' },
-      { AttributeName: 'category', AttributeType: 'S' },
-      { AttributeName: 'department', AttributeType: 'S' },
-      { AttributeName: 'upload_date', AttributeType: 'S' },
-      { AttributeName: 'google_drive_id', AttributeType: 'S' }
+      { AttributeName: 'resource_id', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'category', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'department', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'upload_date', AttributeType: ScalarAttributeType.S },
+      { AttributeName: 'google_drive_id', AttributeType: ScalarAttributeType.S }
     ],
     globalSecondaryIndexes: [
       {
         IndexName: 'department-upload_date-index',
         KeySchema: [
-          { AttributeName: 'department', KeyType: 'HASH' },
-          { AttributeName: 'upload_date', KeyType: 'RANGE' }
+          { AttributeName: 'department', KeyType: KeyType.HASH },
+          { AttributeName: 'upload_date', KeyType: KeyType.RANGE }
         ],
-        Projection: { ProjectionType: 'ALL' }
+        Projection: { ProjectionType: ProjectionType.ALL }
       },
       {
         IndexName: 'google_drive_id-index',
-        KeySchema: [{ AttributeName: 'google_drive_id', KeyType: 'HASH' }],
-        Projection: { ProjectionType: 'ALL' }
+        KeySchema: [{ AttributeName: 'google_drive_id', KeyType: KeyType.HASH }],
+        Projection: { ProjectionType: ProjectionType.ALL }
       }
     ]
   }
@@ -133,9 +133,9 @@ const TABLE_CONFIGS = [
 
 interface TableConfig {
   name: string;
-  keySchema: unknown[];
-  attributeDefinitions: unknown[];
-  globalSecondaryIndexes?: unknown[];
+  keySchema: KeySchemaElement[];
+  attributeDefinitions: AttributeDefinition[];
+  globalSecondaryIndexes?: GlobalSecondaryIndex[];
 }
 
 async function createTable(config: TableConfig) {
@@ -157,7 +157,7 @@ async function createTable(config: TableConfig) {
       TableName: config.name,
       KeySchema: config.keySchema,
       AttributeDefinitions: config.attributeDefinitions,
-      GlobalSecondaryIndexes: config.globalSecondaryIndexes?.map((gsi: unknown) => ({
+      GlobalSecondaryIndexes: config.globalSecondaryIndexes?.map((gsi) => ({
         ...gsi,
         ProvisionedThroughput: undefined // Use on-demand billing
       })),

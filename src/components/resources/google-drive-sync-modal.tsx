@@ -75,59 +75,51 @@ export function GoogleDriveSyncModal({ open, onOpenChange, onSyncComplete }: Goo
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
 
+  const loadFiles = useCallback(async () => {
+    setLoading(true);
+    setNeedsAuth(false);
+    try {
+      const url = currentFolderId 
+        ? `/api/google/files?folderId=${currentFolderId}`
+        : '/api/google/files';
+      
+      const response = await ApiClient.get(url);
+      if (!response.ok) {
+        if (response.status === 401) {
+          setNeedsAuth(true);
+          return;
+        }
+        throw new Error('Failed to load files');
+      }
+      
+      const data = await response.json();
+      setFiles(data.files);
+    } catch (error) {
+      console.error('Error loading files:', error);
+      alert('Failed to load files from Google Drive');
+    } finally {
+      setLoading(false);
+    }
+  }, [currentFolderId]);
+
+  const loadFolders = useCallback(async () => {
+    try {
+      const response = await ApiClient.get('/api/google/folders');
+      if (response.ok) {
+        const data = await response.json();
+        setFolders(data.folders);
+      }
+    } catch (error) {
+      console.error('Error loading folders:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (open) {
       loadFiles();
       loadFolders();
     }
   }, [open, currentFolderId, loadFiles, loadFolders]);
-
-// Update the loadFiles function to use the correct endpoint
-const loadFiles = useCallback(async () => {
-  setLoading(true);
-  setNeedsAuth(false);
-  try {
-    const url = currentFolderId 
-      ? `/api/google/files?folderId=${currentFolderId}`
-      : '/api/google/files';
-    
-    const response = await ApiClient.get(url);
-    if (!response.ok) {
-      if (response.status === 401) {
-        setNeedsAuth(true);
-        return;
-      }
-      throw new Error('Failed to load files');
-    }
-    
-    const data = await response.json();
-    setFiles(data.files);
-  } catch (error) {
-    console.error('Error loading files:', error);
-    alert('Failed to load files from Google Drive');
-  } finally {
-    setLoading(false);
-  }
-}, [currentFolderId]);
-
-const loadFolders = useCallback(async () => {
-  try {
-    const response = await ApiClient.get('/api/google/folders');
-    if (response.ok) {
-      const data = await response.json();
-      setFolders(data.folders);
-    }
-  } catch (error) {
-    console.error('Error loading folders:', error);
-  }
-}, []);
-
-useEffect(() => {
-  if (open) {
-    loadFiles();
-    loadFolders();
-  }
-}, [open, loadFiles, loadFolders]);
 
   const getFileIcon = (type: string) => {
     switch (type) {

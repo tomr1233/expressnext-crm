@@ -73,7 +73,7 @@ export function CSVImport() {
             lead[mappedKey] = values[index].split(';').map(tag => tag.trim()).filter(Boolean)
           } else if (mappedKey === 'status') {
             const status = values[index].toLowerCase()
-            lead[mappedKey] = ['new', 'qualified', 'unqualified'].includes(status) ? status : 'new'
+            lead[mappedKey] = ['new', 'qualified', 'unqualified'].includes(status) ? status as 'new' | 'qualified' | 'unqualified' : 'new'
           } else {
             lead[mappedKey] = values[index]
           }

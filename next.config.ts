@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 
+/** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
@@ -33,6 +34,7 @@ const nextConfig: NextConfig = {
   
   // Experimental features compatible with Next.js 15
   experimental: {
+    esmExternals: true,
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
@@ -67,5 +69,5 @@ const nextConfig: NextConfig = {
     ];
   },
 };
-
+module.exports = nextConfig;
 export default nextConfig;

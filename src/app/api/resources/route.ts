@@ -4,6 +4,8 @@ import { ResourceOperations } from "@/lib/dynamodb-operations";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client, S3_BUCKET_NAME } from "@/lib/s3";
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware'
+import { GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import type { S3Client } from "@aws-sdk/client-s3";
 
 // GET all resources
 async function getResources(_request: NextRequest, _user: AuthenticatedUser) {
@@ -13,14 +15,12 @@ async function getResources(_request: NextRequest, _user: AuthenticatedUser) {
     // Generate signed URLs for each resource
     const resourcesWithUrls = await Promise.all(
       resources.map(async (resource) => {
-        const S3Module = await import("@aws-sdk/client-s3");
-        const GetObjectCommand = (S3Module as any).GetObjectCommand;
         const command = new GetObjectCommand({
           Bucket: S3_BUCKET_NAME,
           Key: resource.s3_key,
         });
 
-        const downloadUrl = await getSignedUrl(s3Client as any, command, {
+        const downloadUrl = await getSignedUrl(s3Client as S3Client, command as Parameters<typeof getSignedUrl>[1], {
           expiresIn: 3600, // URL expires in 1 hour
         });
 
@@ -106,14 +106,12 @@ async function deleteResource(request: NextRequest, _user: AuthenticatedUser) {
 
     // Delete from S3
     try {
-      const S3Module = await import("@aws-sdk/client-s3");
-      const DeleteObjectCommand = (S3Module as any).DeleteObjectCommand;
       const deleteCommand = new DeleteObjectCommand({
         Bucket: S3_BUCKET_NAME,
         Key: resource.s3_key,
       });
 
-      await (s3Client as any).send(deleteCommand);
+      await (s3Client as S3Client).send(deleteCommand as Parameters<S3Client['send']>[0]);
       console.log(`Successfully deleted file from S3: ${resource.s3_key}`);
     } catch (s3Error) {
       console.error("Error deleting from S3:", s3Error);
