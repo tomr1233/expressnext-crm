@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Lead } from "@/lib/dynamodb";
 import { ApiClient } from "@/lib/api-client";
 
@@ -12,6 +13,7 @@ export function LeadsList() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchLeads = async () => {
@@ -87,7 +89,11 @@ export function LeadsList() {
             </thead>
             <tbody className="divide-y divide-border">
               {leads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-muted/50 transition-colors">
+                <tr 
+                  key={lead.id} 
+                  className="hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => router.push(`/leads/${lead.id}`)}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-foreground">
@@ -163,7 +169,14 @@ export function LeadsList() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/leads/${lead.id}`);
+                      }}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
                   </td>

@@ -1,0 +1,22 @@
+{
+  "name": "dynamodb-migration-scripts",
+  "version": "1.0.0",
+  "description": "DynamoDB migration scripts for ExpressNext CRM",
+  "scripts": {
+    "create-tables": "tsx create-tables.ts",
+    "migrate": "tsx migrate-dynamodb.ts",
+    "validate": "tsx validate-migration.ts",
+    "rollback": "tsx rollback-migration.ts",
+    "full-migration": "npm run create-tables && npm run migrate && npm run validate"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.450.0",
+    "@aws-sdk/lib-dynamodb": "^3.450.0",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
