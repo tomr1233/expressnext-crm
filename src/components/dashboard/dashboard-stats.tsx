@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Target, CheckCircle, DollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ApiClient } from "@/lib/api-client";
+import { Deal } from "@/lib/supabase";
 
 interface DashboardData {
   totalLeads: number;
@@ -40,21 +41,21 @@ export function DashboardStats() {
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
 
-        const activeDeals = deals.filter((deal: any) => deal.stage !== 'closed' && deal.stage !== 'lost').length;
+        const activeDeals = deals.length;
         
-        const closedDealsThisMonth = deals.filter((deal: any) => {
-          if (deal.stage !== 'closed') return false;
+        const closedDealsThisMonth = deals.filter((deal: Deal) => {
+          if (deal.stage !== 'proposal') return false;
           const dealDate = new Date(deal.updated_at);
           return dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear;
         }).length;
 
         const monthlyRevenue = deals
-          .filter((deal: any) => {
-            if (deal.stage !== 'closed' || !deal.value) return false;
+          .filter((deal: Deal) => {
+            if (deal.stage !== 'proposal' || !deal.value) return false;
             const dealDate = new Date(deal.updated_at);
             return dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear;
           })
-          .reduce((sum: number, deal: any) => sum + (deal.value || 0), 0);
+          .reduce((sum: number, deal: Deal) => sum + (deal.value || 0), 0);
 
         setData({
           totalLeads: leads.length || 0,

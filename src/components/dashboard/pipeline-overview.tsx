@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { ApiClient } from "@/lib/api-client";
+import { Deal } from "@/lib/supabase";
 
 interface PipelineStage {
   name: string;
@@ -23,7 +24,7 @@ export function PipelineOverview() {
         }
         const deals = await response.json();
 
-        const stageGroups = deals.reduce((acc: Record<string, { count: number; value: number }>, deal: any) => {
+        const stageGroups = deals.reduce((acc: Record<string, { count: number; value: number }>, deal: Deal) => {
           const stage = deal.stage || 'Unknown';
           if (!acc[stage]) {
             acc[stage] = { count: 0, value: 0 };

@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     }, limit);
 
     return NextResponse.json(trafficSources);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to fetch traffic sources data' },
       { status: 500 }

@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     }, limit);
 
     return NextResponse.json(topPages);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to fetch top pages data' },
       { status: 500 }
