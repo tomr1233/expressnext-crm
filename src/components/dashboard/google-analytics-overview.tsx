@@ -66,7 +66,7 @@ export function GoogleAnalyticsOverview() {
           const realtime = await realtimeRes.json();
           setRealtimeUsers(realtime.activeUsers);
         }
-      } catch (error) {
+      } catch (_error) {
         setError('Failed to load analytics data');
       } finally {
         setLoading(false);
