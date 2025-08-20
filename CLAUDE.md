@@ -43,6 +43,12 @@ NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=your_cognito_client_id
 NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID=your_cognito_identity_pool_id
 # Only add this if your app client has a secret (not recommended for web apps)
 COGNITO_CLIENT_SECRET=your_client_secret_if_exists
+
+# Google Analytics Data API
+GOOGLE_ANALYTICS_PROPERTY_ID=your_ga4_property_id
+GOOGLE_ANALYTICS_PROJECT_ID=your_gcp_project_id
+GOOGLE_ANALYTICS_CLIENT_EMAIL=your_service_account_email
+GOOGLE_ANALYTICS_PRIVATE_KEY=your_service_account_private_key
 ```
 
 ## Project Architecture
@@ -70,6 +76,13 @@ The app uses a fixed sidebar navigation with these main sections:
 - Scopes: `drive.readonly` and `drive.metadata.readonly`
 - File sync capabilities with automatic categorization
 - API routes: `/api/google/auth`, `/api/google/callback`, `/api/google/sync`
+
+#### Google Analytics Integration (src/lib/google-analytics.ts)
+- GA4 Data API integration with service account authentication
+- Real-time and historical analytics data
+- Metrics: active users, sessions, page views, bounce rate, session duration
+- Top pages and traffic sources analysis
+- API routes: `/api/analytics/overview`, `/api/analytics/top-pages`, `/api/analytics/traffic-sources`, `/api/analytics/realtime`
 
 #### AWS S3 Integration (src/lib/s3.ts)
 - Direct upload via pre-signed URLs
