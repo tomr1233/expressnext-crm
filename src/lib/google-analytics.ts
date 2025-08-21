@@ -26,15 +26,32 @@ class GoogleAnalyticsService {
   private propertyId: string;
 
   constructor() {
+    // Check for required environment variables
+    const requiredVars = [
+      'GOOGLE_ANALYTICS_PROPERTY_ID',
+      'GOOGLE_ANALYTICS_PROJECT_ID', 
+      'GOOGLE_ANALYTICS_CLIENT_EMAIL',
+      'GOOGLE_ANALYTICS_PRIVATE_KEY'
+    ];
+    
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    if (missingVars.length > 0) {
+      console.error('Missing Google Analytics environment variables:', missingVars);
+    }
+    
     // Handle private key formatting - it might be base64 encoded or have escaped newlines
     let privateKey = process.env.GOOGLE_ANALYTICS_PRIVATE_KEY || '';
+    
+    if (!privateKey) {
+      console.error('GOOGLE_ANALYTICS_PRIVATE_KEY is not set');
+    }
     
     // If the key doesn't start with -----BEGIN, it might be base64 encoded
     if (privateKey && !privateKey.startsWith('-----BEGIN')) {
       try {
         privateKey = Buffer.from(privateKey, 'base64').toString('utf8');
-      } catch (_e) {
-        // Silently use as-is if decoding fails
+      } catch (e) {
+        console.error('Failed to decode base64 private key:', e);
       }
     }
     
