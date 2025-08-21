@@ -12,6 +12,5 @@ services:
     restart: always
     ports:
       - "3001:3001"
-    # Make sure you have a .env file locally for this to work
     env_file:
       - .env
