@@ -46,27 +46,58 @@ class GoogleAnalyticsService {
       console.error('GOOGLE_ANALYTICS_PRIVATE_KEY is not set');
     }
     
-    // Handle different private key formats
+    // Handle different private key formats with better error handling
     try {
+      console.log('Original private key format check:', {
+        length: privateKey.length,
+        startsWithBegin: privateKey.startsWith('-----BEGIN'),
+        hasNewlines: privateKey.includes('\n'),
+        hasEscapedNewlines: privateKey.includes('\\n')
+      });
+      
       // First, replace escaped newlines if they exist
       privateKey = privateKey.replace(/\\n/g, '\n');
       
       // If the key doesn't start with -----BEGIN, it might be base64 encoded
       if (privateKey && !privateKey.startsWith('-----BEGIN')) {
-        // Try base64 decoding
-        privateKey = Buffer.from(privateKey, 'base64').toString('utf8');
-        console.log('Decoded base64 private key');
+        console.log('Attempting to decode base64 private key...');
+        try {
+          const decoded = Buffer.from(privateKey, 'base64').toString('utf8');
+          if (decoded.includes('-----BEGIN PRIVATE KEY-----')) {
+            privateKey = decoded;
+            console.log('Successfully decoded base64 private key');
+          } else {
+            console.error('Base64 decoded content does not contain valid private key header');
+          }
+        } catch (base64Error) {
+          console.error('Failed to decode base64:', base64Error);
+          throw new Error(`Invalid base64 private key: ${base64Error}`);
+        }
       }
       
       // Ensure proper formatting
       if (privateKey && !privateKey.includes('\n') && privateKey.includes('-----BEGIN')) {
-        // Key might be on a single line, add proper line breaks
+        console.log('Adding line breaks to single-line private key');
         privateKey = privateKey
           .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
           .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----');
       }
+      
+      // Validate the final private key format
+      if (!privateKey.includes('-----BEGIN PRIVATE KEY-----') || !privateKey.includes('-----END PRIVATE KEY-----')) {
+        throw new Error('Private key does not contain required BEGIN/END markers');
+      }
+      
+      console.log('Final private key validation:', {
+        hasBegin: privateKey.includes('-----BEGIN PRIVATE KEY-----'),
+        hasEnd: privateKey.includes('-----END PRIVATE KEY-----'),
+        hasNewlines: privateKey.includes('\n'),
+        length: privateKey.length
+      });
+      
     } catch (e) {
       console.error('Error processing private key:', e);
+      throw new Error(`Private key processing failed: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
     
     this.client = new BetaAnalyticsDataClient({
