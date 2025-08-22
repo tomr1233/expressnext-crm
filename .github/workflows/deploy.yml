@@ -88,7 +88,7 @@ jobs:
             "echo \"Checking container logs...\"",
             "docker logs expressnext-crm --tail 10",
             "echo \"Verifying GA environment variables in container...\"",
-            "docker exec expressnext-crm printenv | grep GOOGLE_ANALYTICS || echo 'No GA environment variables found'",
+            "docker exec expressnext-crm env | head -20",
             "docker image prune -f",
             "echo \"Deployment completed successfully!\""
           ]' \
