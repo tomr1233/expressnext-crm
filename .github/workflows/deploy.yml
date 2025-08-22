@@ -71,10 +71,14 @@ jobs:
             "#!/bin/bash",
             "set -e",
             "echo \"Starting deployment...\"",
+            "export GOOGLE_ANALYTICS_PROPERTY_ID=\"${{ secrets.GOOGLE_ANALYTICS_PROPERTY_ID }}\"",
+            "export GOOGLE_ANALYTICS_PROJECT_ID=\"${{ secrets.GOOGLE_ANALYTICS_PROJECT_ID }}\"",
+            "export GOOGLE_ANALYTICS_CLIENT_EMAIL=\"${{ secrets.GOOGLE_ANALYTICS_CLIENT_EMAIL }}\"",
+            "export GOOGLE_ANALYTICS_PRIVATE_KEY=\"${{ secrets.GOOGLE_ANALYTICS_PRIVATE_KEY }}\"",
             "docker pull tommy664/expressnext-crm:latest",
             "docker stop expressnext-crm || true",
             "docker rm expressnext-crm || true",
-            "docker run -d --name expressnext-crm -p 3001:3001 -e GOOGLE_ANALYTICS_PROPERTY_ID=${{ secrets.GOOGLE_ANALYTICS_PROPERTY_ID }} -e GOOGLE_ANALYTICS_PROJECT_ID=${{ secrets.GOOGLE_ANALYTICS_PROJECT_ID }} -e GOOGLE_ANALYTICS_CLIENT_EMAIL=${{ secrets.GOOGLE_ANALYTICS_CLIENT_EMAIL }} -e GOOGLE_ANALYTICS_PRIVATE_KEY=${{ secrets.GOOGLE_ANALYTICS_PRIVATE_KEY }} --env-file /home/${{ secrets.EC2_USER }}/.env --restart unless-stopped tommy664/expressnext-crm:latest",
+            "docker run -d --name expressnext-crm -p 3001:3001 -e GOOGLE_ANALYTICS_PROPERTY_ID -e GOOGLE_ANALYTICS_PROJECT_ID -e GOOGLE_ANALYTICS_CLIENT_EMAIL -e GOOGLE_ANALYTICS_PRIVATE_KEY --env-file /home/${{ secrets.EC2_USER }}/.env --restart unless-stopped tommy664/expressnext-crm:latest",
             "docker image prune -f",
             "echo \"Deployment completed successfully!\""
           ]' \
