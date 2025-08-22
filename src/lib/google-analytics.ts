@@ -46,17 +46,28 @@ class GoogleAnalyticsService {
       console.error('GOOGLE_ANALYTICS_PRIVATE_KEY is not set');
     }
     
-    // If the key doesn't start with -----BEGIN, it might be base64 encoded
-    if (privateKey && !privateKey.startsWith('-----BEGIN')) {
-      try {
+    // Handle different private key formats
+    try {
+      // First, replace escaped newlines if they exist
+      privateKey = privateKey.replace(/\\n/g, '\n');
+      
+      // If the key doesn't start with -----BEGIN, it might be base64 encoded
+      if (privateKey && !privateKey.startsWith('-----BEGIN')) {
+        // Try base64 decoding
         privateKey = Buffer.from(privateKey, 'base64').toString('utf8');
-      } catch (e) {
-        console.error('Failed to decode base64 private key:', e);
+        console.log('Decoded base64 private key');
       }
+      
+      // Ensure proper formatting
+      if (privateKey && !privateKey.includes('\n') && privateKey.includes('-----BEGIN')) {
+        // Key might be on a single line, add proper line breaks
+        privateKey = privateKey
+          .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
+          .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----');
+      }
+    } catch (e) {
+      console.error('Error processing private key:', e);
     }
-    
-    // Replace escaped newlines
-    privateKey = privateKey.replace(/\\n/g, '\n');
     
     this.client = new BetaAnalyticsDataClient({
       credentials: {
