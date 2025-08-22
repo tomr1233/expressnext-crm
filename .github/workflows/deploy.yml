@@ -71,14 +71,26 @@ jobs:
             "#!/bin/bash",
             "set -e",
             "echo \"Starting deployment...\"",
+            "echo \"Checking docker status...\"",
+            "docker --version",
+            "echo \"Pulling latest image...\"",
             "docker pull tommy664/expressnext-crm:latest",
+            "echo \"Stopping existing container...\"",
             "docker stop expressnext-crm || true",
+            "echo \"Removing existing container...\"",
             "docker rm expressnext-crm || true",
+            "echo \"Checking env file exists...\"",
+            "ls -la /home/ubuntu/.env",
+            "echo \"Starting new container...\"",
             "docker run -d --name expressnext-crm -p 3001:3001 --env-file /home/ubuntu/.env --restart unless-stopped tommy664/expressnext-crm:latest",
+            "echo \"Verifying container is running...\"",
+            "docker ps | grep expressnext-crm",
+            "echo \"Checking container logs...\"",
+            "docker logs expressnext-crm --tail 10",
             "docker image prune -f",
             "echo \"Deployment completed successfully!\""
           ]' \
-          --timeout-seconds 300 \
+          --timeout-seconds 600 \
           --region ${{ secrets.AWS_REGION }} \
           --output text \
           --query 'Command.CommandId' > command-id.txt
