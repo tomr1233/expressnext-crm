@@ -100,13 +100,20 @@ class GoogleAnalyticsService {
       throw new Error(`Private key processing failed: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
     
-    this.client = new BetaAnalyticsDataClient({
-      credentials: {
-        client_email: process.env.GOOGLE_ANALYTICS_CLIENT_EMAIL,
-        private_key: privateKey,
-      },
-      projectId: process.env.GOOGLE_ANALYTICS_PROJECT_ID,
-    });
+    try {
+      this.client = new BetaAnalyticsDataClient({
+        credentials: {
+          client_email: process.env.GOOGLE_ANALYTICS_CLIENT_EMAIL,
+          private_key: privateKey,
+        },
+        projectId: process.env.GOOGLE_ANALYTICS_PROJECT_ID,
+      });
+      console.log('Google Analytics client initialized successfully');
+    } catch (clientError) {
+      console.error('Failed to initialize Google Analytics client:', clientError);
+      throw new Error(`Google Analytics client initialization failed: ${clientError instanceof Error ? clientError.message : 'Unknown error'}`);
+    }
+    
     this.propertyId = process.env.GOOGLE_ANALYTICS_PROPERTY_ID || '';
   }
 

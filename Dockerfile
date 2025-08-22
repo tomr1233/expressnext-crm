@@ -39,6 +39,9 @@ WORKDIR /app
 # Set the environment to production
 ENV NODE_ENV=production
 
+# Enable OpenSSL legacy provider to support older key formats
+ENV NODE_OPTIONS="--openssl-legacy-provider"
+
 # Copy built assets and dependencies from builder
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
