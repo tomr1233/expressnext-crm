@@ -75,19 +75,42 @@ class GoogleAnalyticsService {
         hasEscapedNewlines: privateKey.includes('\\n')
       });
       
-      // First, replace escaped newlines if they exist
+      // First, replace escaped newlines if they exist (this is the standard Google format)
       privateKey = privateKey.replace(/\\n/g, '\n');
       
-      // If the key doesn't start with -----BEGIN, it might be base64 encoded
+      console.log('After escaping newlines:', {
+        length: privateKey.length,
+        startsWithBegin: privateKey.startsWith('-----BEGIN'),
+        hasNewlines: privateKey.includes('\n'),
+        first50chars: privateKey.substring(0, 50)
+      });
+      
+      // If after replacing escaped newlines it still doesn't start with -----BEGIN, 
+      // then it might be base64 encoded
       if (privateKey && !privateKey.startsWith('-----BEGIN')) {
-        console.log('Attempting to decode base64 private key...');
-        const decoded = Buffer.from(privateKey, 'base64').toString('utf8');
-        if (decoded.includes('-----BEGIN PRIVATE KEY-----')) {
-          privateKey = decoded;
-          console.log('Successfully decoded base64 private key');
-        } else {
-          throw new Error('Base64 decoded content does not contain valid private key header');
+        console.log('Key does not start with -----BEGIN after newline replacement, attempting base64 decode...');
+        try {
+          const decoded = Buffer.from(privateKey, 'base64').toString('utf8');
+          console.log('Base64 decoded key preview:', {
+            length: decoded.length,
+            startsWithBegin: decoded.startsWith('-----BEGIN'),
+            first50chars: decoded.substring(0, 50),
+            last50chars: decoded.length > 50 ? decoded.substring(decoded.length - 50) : ''
+          });
+          
+          if (decoded.includes('-----BEGIN PRIVATE KEY-----')) {
+            privateKey = decoded;
+            console.log('Successfully decoded base64 private key');
+          } else {
+            console.error('Base64 decoded content preview:', decoded.substring(0, 200));
+            throw new Error('Base64 decoded content does not contain valid private key header');
+          }
+        } catch (base64Error) {
+          console.error('Base64 decoding failed:', base64Error);
+          throw new Error(`Failed to decode base64 private key: ${base64Error}`);
         }
+      } else if (privateKey.startsWith('-----BEGIN')) {
+        console.log('Private key is already in correct PEM format after newline replacement');
       }
       
       // Ensure proper formatting
