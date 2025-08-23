@@ -78,7 +78,14 @@ class GoogleAnalyticsService {
       // First, replace escaped newlines if they exist (this is the standard Google format)
       privateKey = privateKey.replace(/\\n/g, '\n');
       
-      console.log('After escaping newlines:', {
+      // Remove surrounding quotes if they exist
+      if ((privateKey.startsWith('"') && privateKey.endsWith('"')) || 
+          (privateKey.startsWith("'") && privateKey.endsWith("'"))) {
+        privateKey = privateKey.slice(1, -1);
+        console.log('Removed surrounding quotes from private key');
+      }
+      
+      console.log('After processing:', {
         length: privateKey.length,
         startsWithBegin: privateKey.startsWith('-----BEGIN'),
         hasNewlines: privateKey.includes('\n'),
