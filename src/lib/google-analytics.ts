@@ -22,32 +22,52 @@ export interface GoogleAnalyticsTrafficSources {
 }
 
 class GoogleAnalyticsService {
-  private client: BetaAnalyticsDataClient;
-  private propertyId: string;
+  private client: BetaAnalyticsDataClient | null = null;
+  private propertyId: string = '';
+  private isInitialized: boolean = false;
+  private initError: string | null = null;
 
   constructor() {
-    // Check for required environment variables
-    const requiredVars = [
-      'GOOGLE_ANALYTICS_PROPERTY_ID',
-      'GOOGLE_ANALYTICS_PROJECT_ID', 
-      'GOOGLE_ANALYTICS_CLIENT_EMAIL',
-      'GOOGLE_ANALYTICS_PRIVATE_KEY'
-    ];
-    
-    const missingVars = requiredVars.filter(varName => !process.env[varName]);
-    if (missingVars.length > 0) {
-      console.error('Missing Google Analytics environment variables:', missingVars);
+    // Don't initialize during build time - defer until runtime
+    if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+      console.log('Deferring Google Analytics initialization until runtime');
+      return;
     }
     
-    // Handle private key formatting - it might be base64 encoded or have escaped newlines
-    let privateKey = process.env.GOOGLE_ANALYTICS_PRIVATE_KEY || '';
-    
-    if (!privateKey) {
-      console.error('GOOGLE_ANALYTICS_PRIVATE_KEY is not set');
-    }
-    
-    // Handle different private key formats with better error handling
+    this.initialize();
+  }
+
+  private initialize() {
+    if (this.isInitialized) return;
+
     try {
+      // Check for required environment variables
+      const requiredVars = [
+        'GOOGLE_ANALYTICS_PROPERTY_ID',
+        'GOOGLE_ANALYTICS_PROJECT_ID', 
+        'GOOGLE_ANALYTICS_CLIENT_EMAIL',
+        'GOOGLE_ANALYTICS_PRIVATE_KEY'
+      ];
+      
+      const missingVars = requiredVars.filter(varName => !process.env[varName]);
+      if (missingVars.length > 0) {
+        this.initError = `Missing Google Analytics environment variables: ${missingVars.join(', ')}`;
+        console.error(this.initError);
+        this.isInitialized = true;
+        return;
+      }
+      
+      // Handle private key formatting - it might be base64 encoded or have escaped newlines
+      let privateKey = process.env.GOOGLE_ANALYTICS_PRIVATE_KEY || '';
+      
+      if (!privateKey) {
+        this.initError = 'GOOGLE_ANALYTICS_PRIVATE_KEY is not set';
+        console.error(this.initError);
+        this.isInitialized = true;
+        return;
+      }
+      
+      // Handle different private key formats with better error handling
       console.log('Original private key format check:', {
         length: privateKey.length,
         startsWithBegin: privateKey.startsWith('-----BEGIN'),
@@ -61,17 +81,12 @@ class GoogleAnalyticsService {
       // If the key doesn't start with -----BEGIN, it might be base64 encoded
       if (privateKey && !privateKey.startsWith('-----BEGIN')) {
         console.log('Attempting to decode base64 private key...');
-        try {
-          const decoded = Buffer.from(privateKey, 'base64').toString('utf8');
-          if (decoded.includes('-----BEGIN PRIVATE KEY-----')) {
-            privateKey = decoded;
-            console.log('Successfully decoded base64 private key');
-          } else {
-            console.error('Base64 decoded content does not contain valid private key header');
-          }
-        } catch (base64Error) {
-          console.error('Failed to decode base64:', base64Error);
-          throw new Error(`Invalid base64 private key: ${base64Error}`);
+        const decoded = Buffer.from(privateKey, 'base64').toString('utf8');
+        if (decoded.includes('-----BEGIN PRIVATE KEY-----')) {
+          privateKey = decoded;
+          console.log('Successfully decoded base64 private key');
+        } else {
+          throw new Error('Base64 decoded content does not contain valid private key header');
         }
       }
       
@@ -95,12 +110,6 @@ class GoogleAnalyticsService {
         length: privateKey.length
       });
       
-    } catch (e) {
-      console.error('Error processing private key:', e);
-      throw new Error(`Private key processing failed: ${e instanceof Error ? e.message : 'Unknown error'}`);
-    }
-    
-    try {
       this.client = new BetaAnalyticsDataClient({
         credentials: {
           client_email: process.env.GOOGLE_ANALYTICS_CLIENT_EMAIL,
@@ -108,18 +117,36 @@ class GoogleAnalyticsService {
         },
         projectId: process.env.GOOGLE_ANALYTICS_PROJECT_ID,
       });
+      
+      this.propertyId = process.env.GOOGLE_ANALYTICS_PROPERTY_ID || '';
       console.log('Google Analytics client initialized successfully');
-    } catch (clientError) {
-      console.error('Failed to initialize Google Analytics client:', clientError);
-      throw new Error(`Google Analytics client initialization failed: ${clientError instanceof Error ? clientError.message : 'Unknown error'}`);
+      
+    } catch (e) {
+      this.initError = `Google Analytics initialization failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+      console.error('Error initializing Google Analytics:', e);
     }
     
-    this.propertyId = process.env.GOOGLE_ANALYTICS_PROPERTY_ID || '';
+    this.isInitialized = true;
+  }
+
+  private ensureInitialized() {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+    
+    if (this.initError) {
+      throw new Error(this.initError);
+    }
+    
+    if (!this.client) {
+      throw new Error('Google Analytics client is not initialized');
+    }
   }
 
   async getOverviewMetrics(dateRange: { startDate: string; endDate: string } = { startDate: '7daysAgo', endDate: 'today' }): Promise<GoogleAnalyticsMetrics> {
     try {
-      const [response] = await this.client.runReport({
+      this.ensureInitialized();
+      const [response] = await this.client!.runReport({
         property: `properties/${this.propertyId}`,
         dateRanges: [dateRange],
         metrics: [
@@ -157,7 +184,8 @@ class GoogleAnalyticsService {
 
   async getTopPages(dateRange: { startDate: string; endDate: string } = { startDate: '7daysAgo', endDate: 'today' }, limit: number = 5): Promise<GoogleAnalyticsTopPages[]> {
     try {
-      const [response] = await this.client.runReport({
+      this.ensureInitialized();
+      const [response] = await this.client!.runReport({
         property: `properties/${this.propertyId}`,
         dateRanges: [dateRange],
         dimensions: [{ name: 'pagePath' }],
@@ -187,7 +215,8 @@ class GoogleAnalyticsService {
 
   async getTrafficSources(dateRange: { startDate: string; endDate: string } = { startDate: '7daysAgo', endDate: 'today' }, limit: number = 5): Promise<GoogleAnalyticsTrafficSources[]> {
     try {
-      const [response] = await this.client.runReport({
+      this.ensureInitialized();
+      const [response] = await this.client!.runReport({
         property: `properties/${this.propertyId}`,
         dateRanges: [dateRange],
         dimensions: [{ name: 'sessionSource' }],
@@ -217,7 +246,8 @@ class GoogleAnalyticsService {
 
   async getRealtimeMetrics(): Promise<{ activeUsers: number }> {
     try {
-      const [response] = await this.client.runRealtimeReport({
+      this.ensureInitialized();
+      const [response] = await this.client!.runRealtimeReport({
         property: `properties/${this.propertyId}`,
         metrics: [{ name: 'activeUsers' }],
       });
