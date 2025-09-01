@@ -88,31 +88,19 @@ export function GoogleAnalyticsOverview() {
 
   const metricsCards = [
     {
-      title: "Active Users (7d)",
-      value: loading ? 0 : metrics.activeUsers.toLocaleString(),
-      icon: Users,
-      color: "text-blue-600",
-    },
-    {
-      title: "Sessions (7d)",
+      title: "Real Time Sessions and Page Views",
       value: loading ? 0 : metrics.sessions.toLocaleString(),
       icon: MousePointer,
       color: "text-green-600",
     },
     {
-      title: "Page Views (7d)",
-      value: loading ? 0 : metrics.pageViews.toLocaleString(),
-      icon: Eye,
-      color: "text-purple-600",
-    },
-    {
-      title: "New Users (7d)",
+      title: "New Visitors Past 7 Days",
       value: loading ? 0 : metrics.newUsers.toLocaleString(),
       icon: UserPlus,
       color: "text-orange-600",
     },
     {
-      title: "Avg Session Duration",
+      title: "Average Session Duration",
       value: loading ? "0:00" : formatDuration(metrics.avgSessionDuration),
       icon: Clock,
       color: "text-indigo-600",
@@ -175,40 +163,6 @@ export function GoogleAnalyticsOverview() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Top Pages (7d)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex justify-between items-center">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-16" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {topPages.length > 0 ? (
-                  topPages.map((page, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
-                      <span className="text-sm text-foreground truncate flex-1 mr-2">
-                        {page.path}
-                      </span>
-                      <span className="text-sm font-medium text-muted-foreground">
-                        {page.pageViews.toLocaleString()}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground text-sm">No data available</p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader>
