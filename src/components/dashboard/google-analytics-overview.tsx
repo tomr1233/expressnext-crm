@@ -16,6 +16,12 @@ interface AnalyticsMetrics {
   newUsers: number;
 }
 
+interface TopPage {
+  path: string;
+  pageViews: number;
+  uniquePageViews: number;
+}
+
 interface TrafficSource {
   source: string;
   sessions: number;
@@ -31,6 +37,7 @@ export function GoogleAnalyticsOverview() {
     avgSessionDuration: 0,
     newUsers: 0,
   });
+  const [topPages, setTopPages] = useState<TopPage[]>([]);
   const [trafficSources, setTrafficSources] = useState<TrafficSource[]>([]);
   const [realtimeUsers, setRealtimeUsers] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -39,14 +46,18 @@ export function GoogleAnalyticsOverview() {
   useEffect(() => {
     const fetchAnalyticsData = async () => {
       try {
-        const [overviewRes, trafficRes, realtimeRes] = await Promise.all([
+        const [overviewRes, topPagesRes, trafficRes, realtimeRes] = await Promise.all([
           ApiClient.get('/api/analytics/overview'),
+          ApiClient.get('/api/analytics/top-pages'),
           ApiClient.get('/api/analytics/traffic-sources'),
           ApiClient.get('/api/analytics/realtime'),
         ]);
 
         if (overviewRes.ok) {
           setMetrics(await overviewRes.json());
+        }
+        if (topPagesRes.ok) {
+          setTopPages(await topPagesRes.json());
         }
         if (trafficRes.ok) {
           setTrafficSources(await trafficRes.json());
@@ -173,7 +184,7 @@ export function GoogleAnalyticsOverview() {
                   trafficSources.map((source, index) => (
                     <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
                       <span className="text-sm text-foreground">
-                        {source.source}
+                        {source.source === "(direct)" ? "Direct Traffic" : source.source === "linkedin.com" ? "LinkedIn" : source.source}
                       </span>
                       <div className="text-right">
                         <div className="text-sm font-medium text-foreground">
