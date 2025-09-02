@@ -16,12 +16,6 @@ interface AnalyticsMetrics {
   newUsers: number;
 }
 
-interface TopPage {
-  path: string;
-  pageViews: number;
-  uniquePageViews: number;
-}
-
 interface TrafficSource {
   source: string;
   sessions: number;

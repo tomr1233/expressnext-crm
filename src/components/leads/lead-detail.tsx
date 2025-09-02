@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink, Calendar, User, Building, Globe, TrendingUp, Tag } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, User, Building, Globe, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Lead } from "@/lib/dynamodb";
