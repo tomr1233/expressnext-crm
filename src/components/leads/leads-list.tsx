@@ -14,11 +14,8 @@ import { ApiClient } from "@/lib/api-client";
 const DEFAULT_COLUMNS = {
   name: { key: 'name', label: 'Name & Company', visible: true },
   source: { key: 'source', label: 'Source', visible: true },
-  bioMatch: { key: 'bioMatch', label: 'Bio Match %', visible: true },
-  followers: { key: 'followers', label: 'Followers', visible: true },
   website: { key: 'website', label: 'Website', visible: true },
   status: { key: 'status', label: 'Status', visible: true },
-  tags: { key: 'tags', label: 'Tags', visible: true },
   actions: { key: 'actions', label: 'Actions', visible: true }
 };
 

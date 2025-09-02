@@ -119,49 +119,6 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Bio Match Score */}
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
-                <TrendingUp className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Bio Match Score</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-lg font-semibold">{lead.bio_match}%</p>
-                  <div
-                    className={`h-2 w-16 rounded-full ${
-                      lead.bio_match >= 80
-                        ? "bg-green-200 dark:bg-green-900"
-                        : lead.bio_match >= 60
-                        ? "bg-yellow-200 dark:bg-yellow-900"
-                        : "bg-red-200 dark:bg-red-900"
-                    }`}
-                  >
-                    <div
-                      className={`h-2 rounded-full ${
-                        lead.bio_match >= 80
-                          ? "bg-green-500 dark:bg-green-400"
-                          : lead.bio_match >= 60
-                          ? "bg-yellow-500 dark:bg-yellow-400"
-                          : "bg-red-500 dark:bg-red-400"
-                      }`}
-                      style={{ width: `${lead.bio_match}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Followers */}
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full">
-                <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Followers</p>
-                <p className="text-lg font-semibold">{lead.followers.toLocaleString()}</p>
-              </div>
-            </div>
 
             {/* Source */}
             <div className="flex items-center space-x-3">
