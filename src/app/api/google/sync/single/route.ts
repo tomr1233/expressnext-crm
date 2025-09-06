@@ -8,7 +8,7 @@ import { getValidTokens } from '@/lib/google-auth-helpers';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
 // Sync a single file from Google Drive to S3
-async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
+async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const { fileId } = await request.json();
     
@@ -48,8 +48,8 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
 
       console.log(`Syncing single file: ${file.name}`);
       
-      // Check if file already exists in our database
-      const existingResource = await ResourceOperations.getResourceByGoogleDriveId(fileId);
+      // Check if file already exists in our database (user-specific)
+      const existingResource = await ResourceOperations.getResourceByGoogleDriveIdAndUser(fileId, user.userId);
 
       // Download file from Google Drive
       const fileBuffer = await downloadFileFromDrive(drive, fileId, file.mimeType || '');
@@ -114,6 +114,7 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
       } else {
         // Insert new resource
         await ResourceOperations.createResource({
+          user_id: user.userId,
           ...resourceData,
           category: 'auto-synced',
           department: 'general',
@@ -133,7 +134,7 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
       console.error(`Error syncing file ${fileId}:`, error);
       
       // Update sync status to failed
-      const existingResource = await ResourceOperations.getResourceByGoogleDriveId(fileId);
+      const existingResource = await ResourceOperations.getResourceByGoogleDriveIdAndUser(fileId, user.userId);
       if (existingResource) {
         await ResourceOperations.updateResourceSyncStatus(existingResource.id, 'error');
       }

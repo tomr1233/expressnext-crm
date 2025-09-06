@@ -9,7 +9,7 @@ import lodash from 'lodash';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
 // Sync files from Google Drive to S3
-async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
+async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     
@@ -94,6 +94,7 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
       }).format(new Date());
 
         await ResourceOperations.createResource({
+          user_id: user.userId,
           name: file.name,
           type: fileType,
           category,

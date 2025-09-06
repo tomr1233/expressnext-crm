@@ -8,9 +8,9 @@ import { GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import type { S3Client } from "@aws-sdk/client-s3";
 
 // GET all resources
-async function getResources(_request: NextRequest, _user: AuthenticatedUser) {
+async function getResources(_request: NextRequest, user: AuthenticatedUser) {
   try {
-    const resources = await ResourceOperations.getAllResources();
+    const resources = await ResourceOperations.getResourcesByUser(user.userId);
 
     // Generate signed URLs for each resource
     const resourcesWithUrls = await Promise.all(
@@ -58,6 +58,7 @@ async function createResource(request: NextRequest, user: AuthenticatedUser) {
     } = body;
 
     const resource = await ResourceOperations.createResource({
+      user_id: user.userId,
       name,
       type,
       category,
@@ -82,7 +83,7 @@ async function createResource(request: NextRequest, user: AuthenticatedUser) {
 }
 
 // DELETE resource
-async function deleteResource(request: NextRequest, _user: AuthenticatedUser) {
+async function deleteResource(request: NextRequest, user: AuthenticatedUser) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -101,6 +102,14 @@ async function deleteResource(request: NextRequest, _user: AuthenticatedUser) {
       return NextResponse.json(
         { error: "Resource not found or missing S3 key" },
         { status: 404 }
+      );
+    }
+
+    // Check if the resource belongs to the authenticated user
+    if (resource.user_id !== user.userId) {
+      return NextResponse.json(
+        { error: "Forbidden - You can only delete your own resources" },
+        { status: 403 }
       );
     }
 

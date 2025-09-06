@@ -363,6 +363,19 @@ export class ResourceOperations {
     return result.Items as Resource[] || []
   }
 
+  static async getResourcesByUser(userId: string): Promise<Resource[]> {
+    const result = await getDynamoDbClient().send(new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: 'entity_type = :type AND user_id = :user_id',
+      ExpressionAttributeValues: {
+        ':type': 'RESOURCE',
+        ':user_id': userId
+      }
+    }))
+
+    return result.Items as Resource[] || []
+  }
+
   static async updateResource(resourceId: string, updates: Partial<Omit<Resource, 'pk' | 'sk' | 'id' | 'created_at' | 'entity_type'>>): Promise<Resource> {
     const updateExpression = []
     const expressionAttributeNames: Record<string, string> = {}
@@ -411,6 +424,20 @@ export class ResourceOperations {
     return result.Items as Resource[] || []
   }
 
+  static async getResourcesByCategoryAndUser(category: string, userId: string): Promise<Resource[]> {
+    const result = await getDynamoDbClient().send(new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: 'entity_type = :type AND category = :category AND user_id = :user_id',
+      ExpressionAttributeValues: {
+        ':type': 'RESOURCE',
+        ':category': category,
+        ':user_id': userId
+      }
+    }))
+
+    return result.Items as Resource[] || []
+  }
+
   static async getResourcesByDepartment(department: string): Promise<Resource[]> {
     const result = await getDynamoDbClient().send(new ScanCommand({
       TableName: TABLE_NAME,
@@ -424,6 +451,20 @@ export class ResourceOperations {
     return result.Items as Resource[] || []
   }
 
+  static async getResourcesByDepartmentAndUser(department: string, userId: string): Promise<Resource[]> {
+    const result = await getDynamoDbClient().send(new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: 'entity_type = :type AND department = :department AND user_id = :user_id',
+      ExpressionAttributeValues: {
+        ':type': 'RESOURCE',
+        ':department': department,
+        ':user_id': userId
+      }
+    }))
+
+    return result.Items as Resource[] || []
+  }
+
   static async getResourceByGoogleDriveId(googleDriveId: string): Promise<Resource | null> {
     const result = await getDynamoDbClient().send(new ScanCommand({
       TableName: TABLE_NAME,
@@ -431,6 +472,21 @@ export class ResourceOperations {
       ExpressionAttributeValues: {
         ':type': 'RESOURCE',
         ':google_drive_id': googleDriveId
+      }
+    }))
+
+    const resources = result.Items as Resource[] || []
+    return resources.length > 0 ? resources[0] : null
+  }
+
+  static async getResourceByGoogleDriveIdAndUser(googleDriveId: string, userId: string): Promise<Resource | null> {
+    const result = await getDynamoDbClient().send(new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: 'entity_type = :type AND google_drive_id = :google_drive_id AND user_id = :user_id',
+      ExpressionAttributeValues: {
+        ':type': 'RESOURCE',
+        ':google_drive_id': googleDriveId,
+        ':user_id': userId
       }
     }))
 

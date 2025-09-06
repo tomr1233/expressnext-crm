@@ -91,6 +91,7 @@ export interface Resource {
   pk: string // RESOURCE#${resourceId}
   sk: string // METADATA
   id: string
+  user_id: string // AWS Cognito user ID for resource isolation
   name: string
   type: 'document' | 'video' | 'image' | 'other'
   category: string

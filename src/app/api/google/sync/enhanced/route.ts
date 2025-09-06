@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getValidTokens } from '@/lib/google-auth-helpers';
 import { withAuth, AuthenticatedUser } from '@/lib/auth-middleware';
 
-async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
+async function postHandler(request: NextRequest, user: AuthenticatedUser) {
   try {
     const tokens = await getValidTokens();
     if (!tokens || !tokens.accessToken) {
@@ -25,8 +25,8 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
 
     for (const file of files) {
       try {
-        // Check if file already exists
-        const existingResource = await ResourceOperations.getResourceByGoogleDriveId(file.id);
+        // Check if file already exists (user-specific)
+        const existingResource = await ResourceOperations.getResourceByGoogleDriveIdAndUser(file.id, user.userId);
 
         if (existingResource) {
           // Check if file has been modified
@@ -40,7 +40,7 @@ async function postHandler(request: NextRequest, _user: AuthenticatedUser) {
           }
         } else {
           // New file, create resource
-          await createNewResource(file, category, department, tags, drive);
+          await createNewResource(file, category, department, tags, drive, user.userId);
           syncedCount++;
         }
       } catch (error) {
@@ -105,7 +105,7 @@ async function updateExistingResource(file: DriveFileData, existingResource: Exi
   });
 }
 
-async function createNewResource(file: DriveFileData, category: string, department: string, tags: string[], drive: any) {
+async function createNewResource(file: DriveFileData, category: string, department: string, tags: string[], drive: any, userId: string) {
   // Download file from Google Drive
   const fileBuffer = await downloadFileFromDrive(drive, file.id, file.mimeType);
   
@@ -145,6 +145,7 @@ async function createNewResource(file: DriveFileData, category: string, departme
 
   // Insert into database
   await ResourceOperations.createResource({
+    user_id: userId,
     name: file.name,
     type: getFileTypeFromMimeType(file.mimeType),
     category,

@@ -62,6 +62,7 @@ export interface OnboardingStep {
 
 export interface Resource {
   id: string
+  user_id: string // AWS Cognito user ID for resource isolation
   name: string
   type: 'document' | 'video' | 'image' | 'other'
   category: string

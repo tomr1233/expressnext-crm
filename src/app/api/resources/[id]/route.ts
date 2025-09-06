@@ -35,6 +35,14 @@ async function getResourceById(
       );
     }
 
+    // Check if the resource belongs to the authenticated user
+    if (resource.user_id !== user.userId) {
+      return NextResponse.json(
+        { error: "Forbidden - You can only access your own resources" },
+        { status: 403 }
+      );
+    }
+
     // Generate signed URL if S3 key exists
     let resourceWithUrl: ResourceWithDownloadUrl = { ...resource };
     if (resource.s3_key) {

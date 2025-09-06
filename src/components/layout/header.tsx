@@ -82,16 +82,16 @@ export function Header() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium leading-none">{user.username}</p>
+                      <p className="text-sm font-medium leading-none">{user.email}</p>
                       {userRole && (
                         <Badge variant="secondary" className="text-xs">
                           {userRole}
                         </Badge>
                       )}
                     </div>
-                    {user.email && (
+                    {user.username && (
                       <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
+                        {user.username}
                       </p>
                     )}
                   </div>
